@@ -17,24 +17,24 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta name="description" content="SpringBean 的生命周期 通过 BeanDefinition 获取 Bean 的定义信息 通过构造函数实例化 Bean Bean 的依赖注入 处理 Aware 接口 BeanPostProcessor - 前置方法 初始化方法(InitializingBean, init-method) BeanPostProcessor - 后置方法 销毁 Bean  BeanDefinition 是">
+    <meta name="description" content="LRULRU，Least Recently Used，最少最近使用，淘汰策略是最久没用的想象有一摞书，用的时候抽出来，放在最上面淘汰的时候把最下面的移除整一个双向链表，每次都淘汰最后一个，插入的时候插入到头（哨兵后面） 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Spring">
-<meta property="og:url" content="http://showyoubug.cn/2024/05/28/Spring/index.html">
+<meta property="og:title" content="LRU">
+<meta property="og:url" content="http://showyoubug.cn/2024/05/28/%E5%8A%9B%E6%89%A3-LRU/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
-<meta property="og:description" content="SpringBean 的生命周期 通过 BeanDefinition 获取 Bean 的定义信息 通过构造函数实例化 Bean Bean 的依赖注入 处理 Aware 接口 BeanPostProcessor - 前置方法 初始化方法(InitializingBean, init-method) BeanPostProcessor - 后置方法 销毁 Bean  BeanDefinition 是">
+<meta property="og:description" content="LRULRU，Least Recently Used，最少最近使用，淘汰策略是最久没用的想象有一摞书，用的时候抽出来，放在最上面淘汰的时候把最下面的移除整一个双向链表，每次都淘汰最后一个，插入的时候插入到头（哨兵后面） 123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240305171200.png">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240314221217.png">
 <meta property="article:published_time" content="2024-05-28T13:13:45.000Z">
-<meta property="article:modified_time" content="2024-05-30T02:00:17.397Z">
+<meta property="article:modified_time" content="2024-05-30T03:37:07.546Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="八股">
+<meta property="article:tag" content="算法">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240305171200.png">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240314221217.png">
   
   
   
-  <title>Spring - 辰光恰恰好</title>
+  <title>LRU - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Spring"></span>
+            <span id="subtitle" data-typed-text="LRU"></span>
           
         </div>
 
@@ -223,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          2.5k 字
+          1.4k 字
         
       </span>
     
@@ -234,7 +234,7 @@
         
         
         
-          22 分钟
+          12 分钟
         
       </span>
     
@@ -271,117 +271,13 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Spring</h1>
+            <h1 id="seo-header">LRU</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Spring"><a href="#Spring" class="headerlink" title="Spring"></a>Spring</h1><h2 id="Bean-的生命周期"><a href="#Bean-的生命周期" class="headerlink" title="Bean 的生命周期"></a>Bean 的生命周期</h2><ul>
-<li>通过 BeanDefinition 获取 Bean 的定义信息</li>
-<li>通过构造函数实例化 Bean</li>
-<li>Bean 的依赖注入</li>
-<li>处理 Aware 接口</li>
-<li>BeanPostProcessor - 前置方法</li>
-<li>初始化方法(InitializingBean, init-method)</li>
-<li>BeanPostProcessor - 后置方法</li>
-<li>销毁 Bean</li>
-</ul>
-<p>BeanDefinition 是 Spring 容器在进行实例化时, 会将 xml 配置的 <code>&lt;bean&gt;</code> 信息封装成一个 BeanDefinition 对象, Spring 根据它来创建 Bean 对象<br><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240305171200.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
-<h2 id="Aware-接口有什么用"><a href="#Aware-接口有什么用" class="headerlink" title="Aware 接口有什么用"></a>Aware 接口有什么用</h2><ul>
-<li>通过实现特定的 Aware 接口, bean 可以获得对 Spring 容器的某些部分(如配置文件, 文件资源, 环境属性等) 的访问权</li>
-<li>ApplicationContextAware: 允许一个 bean 获得对 ApplicationContext 的访问, 意味着该 bean 可以访问 Spring 容器的所有配置信息的定义</li>
-<li>BeanNameAware: 它会在创建过程中接收到自己在容器中的名称</li>
-<li>BeanFactoryAware: Bean 可以直接访问到它所在的 BeanFactory, 从而允许请求其他 Bean 等操作</li>
-<li>实现这些接口可以让不是在 Spring 的环境下, 获取 Spring 的 Bean, 例如通过 BeanFactory</li>
-</ul>
-<h2 id="InitializingBean-有什么作用"><a href="#InitializingBean-有什么作用" class="headerlink" title="InitializingBean 有什么作用"></a>InitializingBean 有什么作用</h2><ul>
-<li>用于在初始化方法完成后执行自定义初始化逻辑</li>
-<li>当一个 Bean 实现了 InitializingBean 接口时, Spring 容器在初始化Bean 并完成所有属性设置后会调用 <code>afterPropertiesSet()</code> 方法来执行额外初始化操作</li>
-</ul>
-<h2 id="Spring-出现循环依赖"><a href="#Spring-出现循环依赖" class="headerlink" title="Spring 出现循环依赖"></a>Spring 出现循环依赖</h2><ul>
-<li>循环依赖是指两个或多个 Bean 相互依赖, A 依赖于 B, B 依赖于 A</li>
-</ul>
-<h3 id="构造器注入循环依赖能解决吗"><a href="#构造器注入循环依赖能解决吗" class="headerlink" title="构造器注入循环依赖能解决吗"></a>构造器注入循环依赖能解决吗</h3><ul>
-<li>如果 A 和 B 都用构造器注入不行, 因为在创建 Bean 实例时需要调用构造函数创建 Bean</li>
-<li>但是一个使用 Setter 注入, 一个使用构造器注入需要分情况考虑<ul>
-<li>A 用 Setter 注入 B, B 用构造器注入 A, 可以解决循环依赖</li>
-<li>A 用构造器注入 B, B 用 Setter 注入 A, 不可以解决</li>
-<li>因为 Spring 在创建 Bean 的时候默认是按照自然排序进行创建, A 会优先于 B 创建</li>
-</ul>
-</li>
-</ul>
-<h2 id="Spring-创建-Bean-简单的三步"><a href="#Spring-创建-Bean-简单的三步" class="headerlink" title="Spring 创建 Bean 简单的三步"></a>Spring 创建 Bean 简单的三步</h2><ul>
-<li>实例化: 对应方法 <code>AbstractAutowireCapableBeanFactory</code> 的 <code>createBeanInstance</code> 方法</li>
-<li>属性注入: 对应方法 <code>AbstractAutowireCapableBeanFactory</code> 的 <code>populateBean</code> 方法</li>
-<li>初始化: 对应方法 <code>AbstractAutowireCapableBeanFactory</code> 的 <code>initializeBean</code><br>其实就是</li>
-<li>实例化, new 了一个对象</li>
-<li>属性注入: 为 new 的对象填充属性</li>
-<li>初始化: 执行 aware 接口中的方法, 完成 AOP 代理</li>
-</ul>
-<h2 id="Spring-三级缓存"><a href="#Spring-三级缓存" class="headerlink" title="Spring 三级缓存"></a>Spring 三级缓存</h2><ul>
-<li><code>singletonObjects</code> 一级缓存: 存储创建好的单例 Bean</li>
-<li><code>earlySingletonObjects</code> 二级缓存: 完成实例化, 还未进行属性注入及初始化的对象</li>
-<li><code>singletonFactories</code> 三级缓存: 提前暴露一个单例工厂, 二级缓存中存储的就是从这个工厂中获取的对象</li>
-</ul>
-<h2 id="SpringMVC-的执行流程"><a href="#SpringMVC-的执行流程" class="headerlink" title="SpringMVC 的执行流程"></a>SpringMVC 的执行流程</h2><ul>
-<li>用户发送请求到前端控制器 DispatchServlet</li>
-<li>DispatchServlet 收到请求, 调用 HandlerMapper</li>
-<li>HandlerMapper 找到具体的处理器, 生成处理器对象及处理器拦截器(如果有) 一起返回 DispatchServlet</li>
-<li>DispatchServlet 调用 HandlerAdapter(处理器适配器)</li>
-<li>HandlerAdapter 调用具体的 Controller</li>
-</ul>
-<h2 id="SpringBoot-自动装配原理-or-启动流程"><a href="#SpringBoot-自动装配原理-or-启动流程" class="headerlink" title="SpringBoot 自动装配原理 or 启动流程"></a>SpringBoot 自动装配原理 or 启动流程</h2><ul>
-<li>在 SpringBoot 启动类上有一个 <code>@SpringBootApplication</code> 注解, 其中封装了三个注解<ul>
-<li><code>@SpringBootConfiguration</code></li>
-<li><code>@EnableAutoConfiguration</code></li>
-<li><code>@ComponentScan</code></li>
-</ul>
-</li>
-<li>其中 <code>@EnableAutoConfiguration</code> 是实现自动配置的核心注解, 该注解通过 <code>@Import</code> 注解导入对应的配置选择器类<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Import(&#123;AutoConfigurationImportSelector.class&#125;)</span><br></code></pre></td></tr></table></figure></li>
-<li>配置选择器类内部读取该项目和该项目引用 jar 包的 classpath 路径下的 META-INF&#x2F;spring.factories 文件, 该文件里有所需要加载的类的全限定类名, 会根据 bean 的条件注解决定是否将其导入 Spring 容器中<ul>
-<li>条件注解有像 <code>@ConditionalOnClass</code> 这样的注解, 表示有对应的 class 文件, 才加载</li>
-</ul>
-</li>
-</ul>
-<h2 id="SpringBoot-依赖管理"><a href="#SpringBoot-依赖管理" class="headerlink" title="SpringBoot 依赖管理"></a>SpringBoot 依赖管理</h2><ul>
-<li>继承了 <code>spring-boot-starter-parent</code>  其又继承了 <code>spring-boot-dependencies</code> 内部定义了很多依赖</li>
-</ul>
-<h2 id="spring-boot-starter-跟-spring-boot-starter-web-有什么区别"><a href="#spring-boot-starter-跟-spring-boot-starter-web-有什么区别" class="headerlink" title="spring-boot-starter 跟 spring-boot-starter-web 有什么区别"></a>spring-boot-starter 跟 spring-boot-starter-web 有什么区别</h2><ul>
-<li><code>spring-boot-starter</code> 是许多其他 Starter 的基础依赖, 但不包含任何特定的功能模块, 它包含以下内容<ul>
-<li>Spring Core</li>
-<li>Spring Context</li>
-<li>Spring AOP</li>
-</ul>
-</li>
-<li><code>spring-boot-starter-web</code> 是专门用于构建 Web 应用的 Starter 依赖, 能处理 HTTP 请求, 它里面包含 <code>spring-boot-starter</code> <ul>
-<li>Spring Web</li>
-<li>Spring MVC</li>
-<li>Jackson</li>
-<li>Tomcat</li>
-</ul>
-</li>
-</ul>
-<h2 id="Spring-常用的类"><a href="#Spring-常用的类" class="headerlink" title="Spring 常用的类"></a>Spring 常用的类</h2><ul>
-<li><code>ApplicationContext</code> Spring 容器接口, 负责创建和管理 Spring Bean</li>
-<li><code>BeanFactory</code> Spring 容器, 提供 Bean 的基础管理</li>
-<li><code>BeanDefinition</code> </li>
-<li><code>InitializingBean</code></li>
-<li>一些 Aware 接口</li>
-</ul>
-<h2 id="Spring-自动注入原理"><a href="#Spring-自动注入原理" class="headerlink" title="Spring 自动注入原理"></a>Spring 自动注入原理</h2><ul>
-<li>使用反射机制将依赖注入到 Bean 中<ul>
-<li>构造器注入</li>
-<li>Setter 方法注入</li>
-<li>字段注入</li>
-</ul>
-</li>
-</ul>
-<h2 id="get-和-post-有什么区别"><a href="#get-和-post-有什么区别" class="headerlink" title="get 和 post 有什么区别"></a>get 和 post 有什么区别</h2><ul>
-<li>get 参数拼接在 Url 后面, post 参数在请求体里, 相对安全</li>
-<li>数据大小限制, get 受到 Url 长度的限制, post 理论上没有大小限制</li>
-<li>幂等性, get 是幂等的, post 是非幂等的</li>
-</ul>
-
+                <h1 id="LRU"><a href="#LRU" class="headerlink" title="LRU"></a>LRU</h1><p>LRU，Least Recently Used，最少最近使用，淘汰策略是最久没用的<br>想象有一摞书，用的时候抽出来，放在最上面<br>淘汰的时候把最下面的移除<br>整一个双向链表，每次都淘汰最后一个，插入的时候插入到头（哨兵后面）<br><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240314221217.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">class</span> <span class="hljs-title class_">LRUCache</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Node</span>&#123;<br>        <span class="hljs-type">int</span> key, value;<br>        Node pre, next;<br>        Node(<span class="hljs-type">int</span> key, <span class="hljs-type">int</span> value)&#123;<br>            <span class="hljs-built_in">this</span>.key = key;<br>            <span class="hljs-built_in">this</span>.value = value;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-type">Node</span> <span class="hljs-variable">dummy</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>);  <span class="hljs-comment">// 哨兵节点</span><br>    <span class="hljs-comment">// 存储 key 和 Node 的关系，方便检索</span><br>    <span class="hljs-keyword">private</span> Map&lt;Integer, Node&gt; key2Node = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>(); <br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> capacity;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">LRUCache</span><span class="hljs-params">(<span class="hljs-type">int</span> capacity)</span> &#123;<br>        <span class="hljs-built_in">this</span>.capacity = capacity;<br>        dummy.pre = dummy;<br>        dummy.next = dummy;<br>    &#125;<br>    <span class="hljs-comment">// 移除某一个节点（抽出一本书）</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">remove</span><span class="hljs-params">(Node node)</span>&#123;<br>        node.pre.next = node.next;<br>        node.next.pre = node.pre;<br>    &#125;<br>    <span class="hljs-comment">// 把节点添加到链表头（把一本书放到最上面）</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pushFront</span><span class="hljs-params">(Node node)</span>&#123;<br>        node.pre = dummy;<br>        node.next = dummy.next;<br>        node.pre.next = node;<br>        node.next.pre = node;<br>    &#125;<br><br>    <span class="hljs-keyword">private</span> Node <span class="hljs-title function_">getNode</span><span class="hljs-params">(<span class="hljs-type">int</span> key)</span>&#123;<br>        <span class="hljs-keyword">if</span> (!key2Node.containsKey(key)) <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br><br>        <span class="hljs-type">Node</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> key2Node.get(key);  <span class="hljs-comment">// 如果有的话，最近使用过</span><br>        <span class="hljs-comment">// 要把它放到最上面，也就是先移除再插入</span><br>        remove(node);<br>        pushFront(node);<br>        <span class="hljs-keyword">return</span> node;<br>    &#125;<br>    <br>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">get</span><span class="hljs-params">(<span class="hljs-type">int</span> key)</span> &#123;<br>        <span class="hljs-type">Node</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> getNode(key);<br>        <span class="hljs-keyword">return</span> node == <span class="hljs-literal">null</span> ? -<span class="hljs-number">1</span> : node.value;<br>    &#125;<br>    <br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">put</span><span class="hljs-params">(<span class="hljs-type">int</span> key, <span class="hljs-type">int</span> value)</span> &#123;<br>        <span class="hljs-type">Node</span> <span class="hljs-variable">node</span> <span class="hljs-operator">=</span> getNode(key);<br>        <span class="hljs-keyword">if</span> (node != <span class="hljs-literal">null</span>)&#123;  <span class="hljs-comment">// 有这本书</span><br>            node.value = value;  <span class="hljs-comment">// 更新 value</span><br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>        node = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Node</span>(key, value);  <span class="hljs-comment">// 新书</span><br>        key2Node.put(key, node);<br>        pushFront(node);  <span class="hljs-comment">// 放到最上面</span><br>        <span class="hljs-keyword">if</span> (key2Node.size() &gt; capacity)&#123;  <span class="hljs-comment">// 淘汰策略</span><br>            <span class="hljs-type">Node</span> <span class="hljs-variable">backNode</span> <span class="hljs-operator">=</span> dummy.pre;<br>            key2Node.remove(backNode.key);<br>            remove(backNode);  <span class="hljs-comment">// 移除最后一个</span><br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
                 
               </div>
             
@@ -393,7 +289,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E5%85%AB%E8%82%A1/" class="print-no-link">#八股</a>
+        <a href="/tags/%E7%AE%97%E6%B3%95/" class="print-no-link">#算法</a>
       
     </div>
   
@@ -405,8 +301,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Spring</div>
-      <div>http://showyoubug.cn/2024/05/28/Spring/</div>
+      <div>LRU</div>
+      <div>http://showyoubug.cn/2024/05/28/力扣-LRU/</div>
     </div>
     <div class="license-meta">
       
@@ -450,9 +346,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/05/28/Redission-tryLock/" title="Redission tryLock">
+                      <a href="/2024/05/28/Spring/" title="Spring">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Redission tryLock</span>
+                        <span class="hidden-mobile">Spring</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -460,8 +356,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/05/28/%E5%8A%9B%E6%89%A3-LRU/" title="LRU">
-                        <span class="hidden-mobile">LRU</span>
+                      <a href="/2024/05/27/MySQL/" title="MySQL">
+                        <span class="hidden-mobile">MySQL</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
