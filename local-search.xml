@@ -98,5 +98,24 @@
   
   
   
+  <entry>
+    <title>golang</title>
+    <link href="/2024/05/26/golang/"/>
+    <url>/2024/05/26/golang/</url>
+    
+    <content type="html"><![CDATA[<h1 id="golang"><a href="#golang" class="headerlink" title="golang"></a>golang</h1><h2 id="init-和-mian-函数"><a href="#init-和-mian-函数" class="headerlink" title="init 和 mian 函数"></a>init 和 mian 函数</h2><ul><li>init 函数<ul><li>同一个 package 可以定义多个 init 方法<ul><li>同一个 package 不同文件 init 方法执行按照文件名先后顺序执行</li></ul></li><li>同一个 go 文件中可以重复定义 init 方法<ul><li>按定义顺序执行</li></ul></li><li>按照 import 顺序调用其他包的 init 函数</li><li>导入顺序 mian -&gt; A -&gt; B -&gt; C 则 init 执行的顺序正好相反</li><li>init 函数都在一个 goroutine 内执行</li><li>执行完之后再执行 main 函数<br>  <img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240523190103.png" alt="image.png"></li></ul></li></ul><h2 id="byte-和-rune-有什么区别"><a href="#byte-和-rune-有什么区别" class="headerlink" title="byte 和 rune 有什么区别"></a>byte 和 rune 有什么区别</h2><ul><li>都是字符类型, 都是别名类型</li><li>byte 本质是 uint8 类型的别名, 代表了 ASCII 码的一个字符</li><li>rune 本质是 int32 类型的别名, 代表了 UTF-8 字符</li></ul><h2 id="Go-struct-能不能比较"><a href="#Go-struct-能不能比较" class="headerlink" title="Go struct 能不能比较"></a>Go struct 能不能比较</h2><ul><li>如果 struct 有不能比较的字段, 就不能比较</li><li>只能比较是否相等, 不能比较大小</li><li>所有属性都相等并且顺序一致的 struct 才能比较</li></ul><h2 id="goroutine-和线程的区别"><a href="#goroutine-和线程的区别" class="headerlink" title="goroutine 和线程的区别"></a>goroutine 和线程的区别</h2><ul><li>内存占用<ul><li>goroutine 栈内存消耗为 2KB</li><li>Thread 消耗 1MB</li></ul></li><li>创建和销毁<ul><li>Thread 创建和销毁都是操作系统内核级别的, 通常由线程池管理</li><li>goroutine 由 Go runtime 负责创建, 创建销毁消耗非常小, 是用户级</li></ul></li><li>切换<ul><li>Thread 切换时, 需要保存各种寄存器</li><li>goroutine 切换只需要保存 3 个寄存器 <ul><li><code>PC 程序计数器</code></li><li><code>Stack Pointer 栈顶指针</code></li><li><code>BP 基址指针</code></li></ul></li></ul></li></ul><h2 id="slice-和数组的区别"><a href="#slice-和数组的区别" class="headerlink" title="slice 和数组的区别"></a>slice 和数组的区别</h2><ul><li>slice 的底层数据结构是数组</li><li>数组是定长的, slice 可以扩容</li><li>数组就是一片连续的内存, slice 实际上是一个结构体, 包含长度, 容量, 底层数组<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs go"><span class="hljs-keyword">type</span> slice <span class="hljs-keyword">struct</span>&#123;<br>array unsafe.Pointer <span class="hljs-comment">// 元素指针</span><br><span class="hljs-built_in">len</span> <span class="hljs-type">int</span> <span class="hljs-comment">// 数组长度</span><br><span class="hljs-built_in">cap</span> <span class="hljs-type">int</span> <span class="hljs-comment">// 容量</span><br>&#125;<br></code></pre></td></tr></table></figure></li><li>底层数据可以被多个 slice 指向, 所以对一个 slice 操作有可能影响其他 slice</li></ul><h2 id="map-实现原理"><a href="#map-实现原理" class="headerlink" title="map 实现原理"></a>map 实现原理</h2><ul><li>数据被放入一个由桶组成的有序数组中, 每个桶最多可以存放 8 个 <code>key/value</code> 对</li><li>key 的 Hash 值低位用于在该数组中定位到桶, 高 8 位用于在桶中区分 <code>key/value</code> 对</li><li>超了会链接到额外的溢出桶 <code>overflow uintptr</code> 所以数据结构为<ul><li>hash 数组</li><li>桶内 key-value 数组</li><li>溢出的桶链表</li></ul></li><li>当 Hash 超过阈值需要扩容时, 会分配一个新的桶数组, 一般是旧的 2 倍</li><li>go 不会一次全量拷贝, 耗时太大, 会在每次读写 map 的时候动态迁移</li></ul><h2 id="为什么会-Hash-冲突"><a href="#为什么会-Hash-冲突" class="headerlink" title="为什么会 Hash 冲突"></a>为什么会 Hash 冲突</h2><ul><li>通过哈希函数产生的哈希值是有限的, 数据可能比较多, 导致经过哈希函数处理后出现相同的哈希值</li></ul><h2 id="go-map-并发导致-panic-如何解决"><a href="#go-map-并发导致-panic-如何解决" class="headerlink" title="go map 并发导致 panic 如何解决"></a>go map 并发导致 panic 如何解决</h2><ul><li>go 中 map 不支持并发读写</li><li>使用 <code>sync.map</code></li></ul><h2 id="go-的垃圾回收"><a href="#go-的垃圾回收" class="headerlink" title="go 的垃圾回收"></a>go 的垃圾回收</h2><ul><li>无分代</li><li>不整理(回收过程中不对对象进行移动与整理)</li><li>并发(与用户代码并发执行)</li><li>三色标记清除法</li></ul>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>golang</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
   
 </search>
