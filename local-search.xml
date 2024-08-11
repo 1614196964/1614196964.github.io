@@ -4,6 +4,82 @@
   
   
   <entry>
+    <title>安全点 SafePoint</title>
+    <link href="/2024/07/17/%E5%AE%89%E5%85%A8%E7%82%B9SafePoint/"/>
+    <url>/2024/07/17/%E5%AE%89%E5%85%A8%E7%82%B9SafePoint/</url>
+    
+    <content type="html"><![CDATA[<h1 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h1><p>HotSpot 虚拟机并非在代码指令流的任意位置都能停下来开始垃圾回收的，而是强制要求必须执行到<strong>安全点</strong>后才能够暂停</p><p>安全点的选定基本上是以“是否具有让程序长时间执行的特征” 为标准进行选定的，最明显的特征是指令系列的复用，所以只有具有这些功能的指令才会产生安全点</p><ul><li>方法调用</li><li>循环跳转</li><li>异常跳转</li></ul><h2 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h2><p>HotSpot 虚拟机为了避免安全点过多带来过重的负担，对循环有一项优化措施，认为循环次数较少的话，执行时间应该也不会太长</p><ul><li>使用 int 或者更小范围的数据类型作为索引的循环默认是不会放置安全点的，这种循环被称为可数循环；</li><li>使用 long 或者范围更大的数据类型作为索引值的循环就被称为不可数循环（Uncounted Loop）将会被放置安全点</li></ul><h2 id="native方法（JNI）"><a href="#native方法（JNI）" class="headerlink" title="native方法（JNI）"></a>native方法（JNI）</h2><p>当某个线程在执行 native 函数的时候，此时该线程在执行 JVM 管理以外的代码，不能对 JVM 的执行状态做任何修改，因而 JVM 要进入 SafePoint，所以也可以把正在执行 native 函数的线程看做 “已经进入了 SafePoint” 或者把这种情况叫做 “在 safe-region 里”</p><p>Thread.sleep(0) 方法就是一个 native 方法，是一个 JNI 调用，在返回 Java 这边的时候会进入 SafePoint</p><p>RocketMQ 的源码中 <code>Thread.sleep(0)</code> 的操作就是让他进入安全点</p><p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240716223334.png" alt="image.png"></p><h2 id="GC的时机"><a href="#GC的时机" class="headerlink" title="GC的时机"></a>GC的时机</h2><p>HotSpot会在所有方法的临返回之前，以及所有非counted loop的循环的回跳之前放置安全点</p><p>JVM 在做 GC 之前要等所有的应用线程进入到安全点之后 VM 线程才能分派 GC 任务，如果有线程一直没有进入到安全点，就会导致 GC 时JVM 停顿时间延长</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span>（<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>；i&lt;<span class="hljs-number">1000000000</span>；i++)<br></code></pre></td></tr></table></figure><p>是一个典型的 Counted Loops 就是有明确的循环计数器变量，而且该变量有明确的起始值、终止值、步进长度的循环所以当这个循环运行时，JVM将无法停止线程</p><h2 id="GC要等所有线程进入安全点的例子"><a href="#GC要等所有线程进入安全点的例子" class="headerlink" title="GC要等所有线程进入安全点的例子"></a>GC要等所有线程进入安全点的例子</h2><ol><li>启动了两个长的、不间断的循环（内部没有安全点检查）。</li><li>主线程进入睡眠状态 1 秒钟。</li><li>在1000 ms之后，JVM尝试在Safepoint停止，以便Java线程进行定期清理，但是直到可数循环完成后才能执行此操作。</li><li>主线程的 Thread.sleep 方法从 native 返回，发现安全点操作正在进行中，于是把自己挂起，直到操作结束。<br>由于VMThread的某些操作需要STW，主线程在sleep结束前进入了JVM全局安全点，然后主线程要等待其他线程全部进入安全点，所以主线程被长时间没有进入安全点的其他线程给阻塞了</li></ol><p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240716223347.png" alt="image.png"></p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>JVM</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Redis 延迟队列</title>
+    <link href="/2024/07/10/Redis%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/"/>
+    <url>/2024/07/10/Redis%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/</url>
+    
+    <content type="html"><![CDATA[<p>Redis 做延迟队列有两种方案：</p><ul><li>Redis 过期时间监听</li><li>Redisson 内置的延迟队列</li></ul><h2 id="Redis-过期事件监听实现延迟队列"><a href="#Redis-过期事件监听实现延迟队列" class="headerlink" title="Redis 过期事件监听实现延迟队列"></a>Redis 过期事件监听实现延迟队列</h2><p>Redis 有发布订阅（pub&#x2F;sub）功能，在 pub&#x2F;sub，引入了 <code>channel（频道）</code>，类似于消息队列的 topic （主题）</p><p>pub&#x2F;sub 涉及发布者<code>publisher</code> 和 订阅者 <code>subscriber</code> 两个角色</p><ul><li>发布者通过 <code>publish</code> 投递给指定的 channel</li><li>订阅者通过 subscribe 订阅一个或多个的 channel</li></ul><p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240811213610.png"></p><p>生产者指定消息到 channel，消费者订阅对应的 channel</p><p>Redis 中有很多默认的 channel，这些 channel 是由 Redis 本身向它们发送消息，<code>__keyevent@0__:expired</code> 就是一个默认的 channel，负责监听 key 的过期事件</p><p>当一个 key 过期之后，Redis 会发布一个 key 过期的事件到这个 channel 中</p><p>只需要监听这个 channel，就可以拿到过期的 key 的消息，进而实现了延迟队列</p><h3 id="缺点-1：时效性差"><a href="#缺点-1：时效性差" class="headerlink" title="缺点 1：时效性差"></a>缺点 1：时效性差</h3><p>过期事件是在 Redis 删除 key 时发布的，不是设置的过期时间到的时候直接发布</p><p>过期删除策略有 2 个</p><ul><li>惰性删除，对 CPU 友好，但是可能导致过期的 key 没有删除</li><li>定期删除，每隔一段时间抽取一批 key 执行删除，对内存友好</li></ul><p>Redis 采用的是 定期删除+惰性删除，因此会存在 key 过期了，但是事件还未发布</p><h3 id="缺点2：丢消息"><a href="#缺点2：丢消息" class="headerlink" title="缺点2：丢消息"></a>缺点2：丢消息</h3><p>Redis 中消息不支持持久化，当 channel 没有订阅者时，消息会被直接丢弃</p><h3 id="缺点3：多服务实例下存在消息重复问题"><a href="#缺点3：多服务实例下存在消息重复问题" class="headerlink" title="缺点3：多服务实例下存在消息重复问题"></a>缺点3：多服务实例下存在消息重复问题</h3><p>Redis 的消息队列只有广播模式，所有订阅指定 channel 的实例全都能收到消息，需要处理重复消费问题</p><h2 id="Redisson-内置的延迟队列实现"><a href="#Redisson-内置的延迟队列实现" class="headerlink" title="Redisson 内置的延迟队列实现"></a>Redisson 内置的延迟队列实现</h2><p>Redisson的延迟队列 RDelayedQueue 是基于 ZSet 实现的，需要执行延迟的任务插入到 ZSet 中，并给他们设置相应的过期时间作为分数</p><p>使用 <code>zrangebyscore</code> 命令扫描 ZSet 中过期的元素，然后将这些过期元素从 ZSet 中移除，并将它们加入到就绪消息列表中。就绪消息列表是一个阻塞队列，有消息进入就会被监听到。这样做可以避免对整个 ZSet 进行轮询，提高了执行效率</p><p>优势：</p><ul><li>减少了丢消息的可能：DelayedQueue 中的消息会被持久化，即使Redis宕机了，根据持久化机制，也只可能丢失一点消息，影响不大。也可以使用扫描数据库的方法作为补偿机制。</li><li>消息不存在重复消费问题：每个客户端都是从同一个目标队列中获取任务的，不存在重复消费的问题。</li></ul>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Redis</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Feed 流 —— Timeline</title>
+    <link href="/2024/07/06/Timeline/"/>
+    <url>/2024/07/06/Timeline/</url>
+    
+    <content type="html"><![CDATA[<h1 id="Timeline"><a href="#Timeline" class="headerlink" title="Timeline"></a>Timeline</h1><p>本文介绍基于关注关系并按时间排列的 Feed 流</p><p>Feed 流有两种工作模式，推模式和拉模式</p><h2 id="拉模式"><a href="#拉模式" class="headerlink" title="拉模式"></a>拉模式</h2><p>在用户查询时应该首先查询用户关注的所有博主的 <code>uid</code> 查询他们发布的作品，最后按照发布时间降序排列</p><p>拉模式用户每打开一次 “关注页” 系统就需要读取 N 个人的文章（N 为用户关注的博主数）所以拉模式又被称为<strong>读扩散</strong></p><p>拉模式不需要额外存储数据</p><ul><li>发布文章在 <code>articles</code> 表增加一条数据</li><li>用户关注在 <code>followings</code> 表中增加一条数据</li></ul><p>在粉丝数特别多的博主发布内容时，不需要进行特殊处理，等到用户进入关注页再计算就好</p><p>但是每次进入关注页都要进行大量读取和排序操作，如果用户关注的人比较多，一次拉取耗时会很大</p><h2 id="推模式"><a href="#推模式" class="headerlink" title="推模式"></a>推模式</h2><p>博主在发布文章的时候就要把新文章写入粉丝的 <code>Timeline</code> 中，用户每次只需要到自己关注的 <code>Timeline</code> 中</p><p>推模式每次发布文章都要写入 M 条数据（M 是粉丝数）所以推模式也叫<strong>写扩散</strong></p><p>在粉丝数比较多的博主，每次发布作品都要推送很多，体验不够友好</p><p>一般发布文章之后，前端返回成功，用 MQ 异步向粉丝 <code>Timeline</code> 推送</p><h2 id="在线推，离线拉"><a href="#在线推，离线拉" class="headerlink" title="在线推，离线拉"></a>在线推，离线拉</h2><p><code>Timeline</code> 实际上就是一个缓存</p><p>给 <code>Timeline</code> 的存储设置过期时间，如果用户一段时间没有打开 APP，<code>Timeline</code> 会失效，在他回归之后通过拉模式重建缓存即可</p><p>判断用户是否在线，也就可以通过 <code>Timeline</code> 缓存是否存在作为判断依据</p><p>并且用户总是关心关注页中最新的内容，所以 <code>Timeline</code> 也没必要存完整的数据，存最近一段时间的即可，旧数据等用户翻阅时重建</p><h2 id="存储"><a href="#存储" class="headerlink" title="存储"></a>存储</h2><p>用 ZSet 存储，<code>article_id</code> 作为集合的 member，发布时间戳作为 score</p><p>推送的时候对目标 <code>Timeline</code> 的 ZSet 进行 ZAdd 操作，若缓存没有某个 <code>Timeline</code> 就用拉模式重建</p><p>存在的问题</p><ul><li><p>如果没有某个 <code>Timeline</code> 的缓存时，无法判断缓存是否失效了，还是这个用户的<code>Timeline</code> 本来就是空的，只能通过读取 MySQL 数据才能判断，会造成缓存穿透</p></li><li><p>由于只存储一段时间的 <code>Timeline</code> 所以当读完了 Redis 中的数据之后，无法判断数据库中是否有更久的数据</p></li></ul><p>解决办法：</p><ul><li>在 ZSet 中放一个 <code>noMore</code> 标志，表示数据库中没有更多的数据了，对于 <code>Timeline</code> 本来就为空的用户，他们 ZSet 中只有一个 <code>noMor</code> 标志</li></ul>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>系统设计</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>点赞业务设计</title>
+    <link href="/2024/07/03/%E7%82%B9%E8%B5%9E%E4%B8%9A%E5%8A%A1%E8%AE%BE%E8%AE%A1/"/>
+    <url>/2024/07/03/%E7%82%B9%E8%B5%9E%E4%B8%9A%E5%8A%A1%E8%AE%BE%E8%AE%A1/</url>
+    
+    <content type="html"><![CDATA[<h1 id="点赞"><a href="#点赞" class="headerlink" title="点赞"></a>点赞</h1><p>内容点赞是一个非常高频的业务场景，功能本身复杂度不高，但是业务场景多，QPS 高，而且由于社区的用户体量，整体点赞的数据量非常大</p><p>点赞服务需要提供的接口有</p><ul><li>对某个内容点赞（取消点赞）、点踩（取消点踩）</li><li>查询是否对 单个 或者 一批内容 点过赞（踩） - 即点赞状态查询</li><li>查询某个内容的点赞数</li><li>查询某个用户的点赞列表</li><li>查询某个内容的点赞人列表</li><li>查询用户收到的总点赞数</li></ul><p>其中最核心的主要是</p><ul><li>用户是否点赞内容</li><li>内容点赞数</li></ul><p>在刷 Feed 流时，每一次下滑，都需要对数十篇内容进行登录用户是否点赞的判断</p><h2 id="方案1"><a href="#方案1" class="headerlink" title="方案1"></a>方案1</h2><p>用 Redis 的 set 结构进行存储用户 id</p><p><code>contentId: [userId1, userId2, ...]</code></p><p>用 set 的 <code>Sismember</code> 判断用户是否点赞，用 <code>Scard</code> 判断点赞数量</p><p>问题：</p><ul><li>如果是热点数据，点赞用户很多，容易出现<strong>大 Key</strong> 问题</li><li>缓存重建的时候需要查询全部点赞用户，容易出现<strong>慢查询</strong>问题</li></ul><h3 id="大-key-的危害"><a href="#大-key-的危害" class="headerlink" title="大 key 的危害"></a>大 key 的危害</h3><ul><li>对大 key 执行读请求，会使Redis 实例的带宽使用率被占满，导致自身服务变慢</li><li>对大 key 进行删除操作，易造成主库长时间阻塞</li></ul><h2 id="方案-2"><a href="#方案-2" class="headerlink" title="方案 2"></a>方案 2</h2><p>对大 Key 进行分片处理，对同一动态下的点赞用户，进行分片再放到缓存里，每次操作缓存时先根据 <code>userId</code> 计算分片值</p><figure class="highlight pf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs pf">contentId-<span class="hljs-number">1</span>: [<span class="hljs-keyword">user</span>Id1, <span class="hljs-keyword">user</span>Id11...]  // 把用户结尾为 <span class="hljs-number">1</span> 的全放到这里<br>contentId-<span class="hljs-number">2</span>: [<span class="hljs-keyword">user</span>Id2, <span class="hljs-keyword">user</span>Id22...]<br>contentId-<span class="hljs-number">3</span>: [<span class="hljs-keyword">user</span>Id3, <span class="hljs-keyword">user</span>Id33...]<br></code></pre></td></tr></table></figure><p>问题</p><ul><li>缓存分片仍然维护了被浏览动态下全部点赞数据，Feed 流场景下，用户浏览过的动态，几乎不会再次被浏览</li><li>一些点赞量多的历史动态，有人访问时会重建缓存，重建成本高，但是用率不高</li><li>分片增加了业务复杂性，增加了维护缓存的难度</li><li>分片会导致产生大量的 Key，Key 也会占用内存空间</li></ul><h2 id="方案-3"><a href="#方案-3" class="headerlink" title="方案 3"></a>方案 3</h2><p>使用 <code>Hash</code> 结构，<code>userId</code> 作为 key</p><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br><span class="hljs-attr">&quot;userId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br><span class="hljs-attr">&quot;ttl&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1653532653</span><span class="hljs-punctuation">,</span><br><span class="hljs-attr">&quot;contentId1&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">//用户近一段时间点赞过的动态id</span><br><span class="hljs-attr">&quot;contentId2&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">//用户近一段时间点赞过的动态id</span><br><span class="hljs-attr">&quot;contentIdn&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">1</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">//用户近一段时间点赞过的动态id</span><br><span class="hljs-attr">&quot;minContentId&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-number">3540575</span><span class="hljs-punctuation">,</span> <span class="hljs-comment">//缓存中最小的动态id，用以区分冷热，</span><br><span class="hljs-punctuation">&#125;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure><ul><li>之前的方案访问老旧内容会重建缓存，性价比低，而且内容下点赞用户并不是一直活跃或重新访问的，所以先方案要区分冷热数据</li><li><code>contentId</code> 内容 id，是递增的，一定程度上反应了数据的冷热</li><li>缓存中只维护一定时间和一定数量的 <code>contentId</code> ，并增加 <code>minContentId</code> 字段用于区分冷热数据</li><li>对于冷数据，直接访问 DB，不再重建缓存</li></ul>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>系统设计</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>观察者模式</title>
     <link href="/2024/06/29/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/"/>
     <url>/2024/06/29/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/</url>

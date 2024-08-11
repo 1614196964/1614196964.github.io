@@ -17,22 +17,25 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta name="description" content="观察者模式是一种一对多的关系，当一个对象状态发生改变时，所有依赖于它的对象都得到通知并完成更新  被观察者（Observerable）：目标对象，状态发生变化时，通知所有的观察者 观察者（Observer）：接收被观察者状态变化通知  例如异步通知场景  定义被观察者  12345678910111213141516171819202122232425262728293031public clas">
+    <meta name="description" content="安全点HotSpot 虚拟机并非在代码指令流的任意位置都能停下来开始垃圾回收的，而是强制要求必须执行到安全点后才能够暂停 安全点的选定基本上是以“是否具有让程序长时间执行的特征” 为标准进行选定的，最明显的特征是指令系列的复用，所以只有具有这些功能的指令才会产生安全点  方法调用 循环跳转 异常跳转  循环HotSpot 虚拟机为了避免安全点过多带来过重的负担，对循环有一项优化措施，认为循环次数较">
 <meta property="og:type" content="article">
-<meta property="og:title" content="观察者模式">
-<meta property="og:url" content="http://showyoubug.cn/2024/06/29/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/index.html">
+<meta property="og:title" content="安全点 SafePoint">
+<meta property="og:url" content="http://showyoubug.cn/2024/07/17/%E5%AE%89%E5%85%A8%E7%82%B9SafePoint/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
-<meta property="og:description" content="观察者模式是一种一对多的关系，当一个对象状态发生改变时，所有依赖于它的对象都得到通知并完成更新  被观察者（Observerable）：目标对象，状态发生变化时，通知所有的观察者 观察者（Observer）：接收被观察者状态变化通知  例如异步通知场景  定义被观察者  12345678910111213141516171819202122232425262728293031public clas">
+<meta property="og:description" content="安全点HotSpot 虚拟机并非在代码指令流的任意位置都能停下来开始垃圾回收的，而是强制要求必须执行到安全点后才能够暂停 安全点的选定基本上是以“是否具有让程序长时间执行的特征” 为标准进行选定的，最明显的特征是指令系列的复用，所以只有具有这些功能的指令才会产生安全点  方法调用 循环跳转 异常跳转  循环HotSpot 虚拟机为了避免安全点过多带来过重的负担，对循环有一项优化措施，认为循环次数较">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-06-29T13:13:45.000Z">
-<meta property="article:modified_time" content="2024-06-30T07:04:16.258Z">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240716223334.png">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240716223347.png">
+<meta property="article:published_time" content="2024-07-17T02:13:30.000Z">
+<meta property="article:modified_time" content="2024-08-11T14:03:59.889Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="设计模式">
+<meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240716223334.png">
   
   
   
-  <title>观察者模式 - 辰光恰恰好</title>
+  <title>安全点 SafePoint - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +201,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="观察者模式"></span>
+            <span id="subtitle" data-typed-text="安全点 SafePoint"></span>
           
         </div>
 
@@ -209,8 +212,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-06-29 21:13" pubdate>
-          2024年6月29日 晚上
+        <time datetime="2024-07-17 10:13" pubdate>
+          2024年7月17日 上午
         </time>
       </span>
     
@@ -232,7 +235,7 @@
         
         
         
-          10 分钟
+          9 分钟
         
       </span>
     
@@ -269,27 +272,38 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">观察者模式</h1>
+            <h1 id="seo-header">安全点 SafePoint</h1>
             
             
               <div class="markdown-body">
                 
-                <p>观察者模式是一种一对多的关系，当一个对象状态发生改变时，所有依赖于它的对象都得到通知并完成更新</p>
+                <h1 id="安全点"><a href="#安全点" class="headerlink" title="安全点"></a>安全点</h1><p>HotSpot 虚拟机并非在代码指令流的任意位置都能停下来开始垃圾回收的，而是强制要求必须执行到<strong>安全点</strong>后才能够暂停</p>
+<p>安全点的选定基本上是以“是否具有让程序长时间执行的特征” 为标准进行选定的，最明显的特征是指令系列的复用，所以只有具有这些功能的指令才会产生安全点</p>
 <ul>
-<li>被观察者（Observerable）：目标对象，状态发生变化时，通知所有的观察者</li>
-<li>观察者（Observer）：接收被观察者状态变化通知</li>
+<li>方法调用</li>
+<li>循环跳转</li>
+<li>异常跳转</li>
 </ul>
-<p>例如异步通知场景</p>
-<ol>
-<li>定义被观察者</li>
+<h2 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h2><p>HotSpot 虚拟机为了避免安全点过多带来过重的负担，对循环有一项优化措施，认为循环次数较少的话，执行时间应该也不会太长</p>
+<ul>
+<li>使用 int 或者更小范围的数据类型作为索引的循环默认是不会放置安全点的，这种循环被称为可数循环；</li>
+<li>使用 long 或者范围更大的数据类型作为索引值的循环就被称为不可数循环（Uncounted Loop）将会被放置安全点</li>
+</ul>
+<h2 id="native方法（JNI）"><a href="#native方法（JNI）" class="headerlink" title="native方法（JNI）"></a>native方法（JNI）</h2><p>当某个线程在执行 native 函数的时候，此时该线程在执行 JVM 管理以外的代码，不能对 JVM 的执行状态做任何修改，因而 JVM 要进入 SafePoint，所以也可以把正在执行 native 函数的线程看做 “已经进入了 SafePoint” 或者把这种情况叫做 “在 safe-region 里”</p>
+<p>Thread.sleep(0) 方法就是一个 native 方法，是一个 JNI 调用，在返回 Java 这边的时候会进入 SafePoint</p>
+<p>RocketMQ 的源码中 <code>Thread.sleep(0)</code> 的操作就是让他进入安全点</p>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240716223334.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
+<h2 id="GC的时机"><a href="#GC的时机" class="headerlink" title="GC的时机"></a>GC的时机</h2><p>HotSpot会在所有方法的临返回之前，以及所有非counted loop的循环的回跳之前放置安全点</p>
+<p>JVM 在做 GC 之前要等所有的应用线程进入到安全点之后 VM 线程才能分派 GC 任务，如果有线程一直没有进入到安全点，就会导致 GC 时JVM 停顿时间延长</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">for</span>（<span class="hljs-type">int</span> i=<span class="hljs-number">0</span>；i&lt;<span class="hljs-number">1000000000</span>；i++)<br></code></pre></td></tr></table></figure>
+<p>是一个典型的 Counted Loops 就是有明确的循环计数器变量，而且该变量有明确的起始值、终止值、步进长度的循环所以当这个循环运行时，JVM将无法停止线程</p>
+<h2 id="GC要等所有线程进入安全点的例子"><a href="#GC要等所有线程进入安全点的例子" class="headerlink" title="GC要等所有线程进入安全点的例子"></a>GC要等所有线程进入安全点的例子</h2><ol>
+<li>启动了两个长的、不间断的循环（内部没有安全点检查）。</li>
+<li>主线程进入睡眠状态 1 秒钟。</li>
+<li>在1000 ms之后，JVM尝试在Safepoint停止，以便Java线程进行定期清理，但是直到可数循环完成后才能执行此操作。</li>
+<li>主线程的 Thread.sleep 方法从 native 返回，发现安全点操作正在进行中，于是把自己挂起，直到操作结束。<br>由于VMThread的某些操作需要STW，主线程在sleep结束前进入了JVM全局安全点，然后主线程要等待其他线程全部进入安全点，所以主线程被长时间没有进入安全点的其他线程给阻塞了</li>
 </ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Observable</span> &#123;<br>    <span class="hljs-keyword">private</span> List&lt;Observer&gt; observers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> state;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getState</span><span class="hljs-params">()</span>&#123;<br>        <span class="hljs-keyword">return</span> state;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setState</span><span class="hljs-params">(<span class="hljs-type">int</span> state)</span>&#123;<br>        notifyAllObservers(state);<br>    &#125;<br><br>    <span class="hljs-comment">// 添加观察者</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">addObserve</span><span class="hljs-params">(Observer observer)</span>&#123;<br>        observers.add(observer);<br>    &#125;<br>    <span class="hljs-comment">// 移除观察者</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">removeObserve</span><span class="hljs-params">(Observer observer)</span>&#123;<br>        observers.remove(observer);<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">notifyAllObservers</span><span class="hljs-params">(<span class="hljs-type">int</span> state)</span>&#123;<br>        <span class="hljs-keyword">if</span> (state != <span class="hljs-number">1</span>)&#123;<br>            System.out.println(<span class="hljs-string">&quot;不是通知状态&quot;</span>);<br>            <span class="hljs-keyword">return</span> ;<br>        &#125;<br>        <span class="hljs-keyword">for</span> (Observer observer : observers) &#123;<br>            observer.doEvent();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>观察者接口以及实现</li>
-</ol>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Observer</span> &#123;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 观察者方法</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">void</span> <span class="hljs-title function_">doEvent</span><span class="hljs-params">()</span>;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">EmailObserver</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Observer</span> &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doEvent</span><span class="hljs-params">()</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;发邮件&quot;</span>);<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MobileObserver</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Observer</span> &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doEvent</span><span class="hljs-params">()</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;发短信&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
-
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240716223347.png" srcset="/img/loading.gif" lazyload alt="image.png"></p>
 
                 
               </div>
@@ -302,7 +316,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#设计模式</a>
+        <a href="/tags/JVM/" class="print-no-link">#JVM</a>
       
     </div>
   
@@ -314,8 +328,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>观察者模式</div>
-      <div>http://showyoubug.cn/2024/06/29/观察者模式/</div>
+      <div>安全点 SafePoint</div>
+      <div>http://showyoubug.cn/2024/07/17/安全点SafePoint/</div>
     </div>
     <div class="license-meta">
       
@@ -327,7 +341,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年6月29日</div>
+          <div>2024年7月17日</div>
         </div>
       
       
@@ -359,18 +373,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/07/03/%E7%82%B9%E8%B5%9E%E4%B8%9A%E5%8A%A1%E8%AE%BE%E8%AE%A1/" title="点赞业务设计">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">点赞业务设计</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/06/26/%E6%9E%9A%E4%B8%BE%E5%AE%9E%E7%8E%B0%E8%B4%A3%E4%BB%BB%E9%93%BE/" title="枚举实现责任链">
-                        <span class="hidden-mobile">枚举实现责任链</span>
+                      <a href="/2024/07/10/Redis%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" title="Redis 延迟队列">
+                        <span class="hidden-mobile">Redis 延迟队列</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
