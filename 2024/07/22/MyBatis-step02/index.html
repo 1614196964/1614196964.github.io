@@ -1,0 +1,688 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer" />
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Dong Su">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="这是一个流程，  通过 SqlSessionFactory 开启一个 SqlSession  SqlSession 里有成员变量 MapperRegistry  MapperRegistry 里面通过包路径扫描，得到了一个 map 这个 map 封装了接口，跟它的代理类工厂 可以通过 get 的方式获得代理类工厂，用工厂的静态方法 new 出来一个代理对象 使用工厂模式可以屏蔽创建细节，延迟创建过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MyBatis-step02">
+<meta property="og:url" content="http://showyoubug.cn/2024/07/22/MyBatis-step02/index.html">
+<meta property="og:site_name" content="辰光恰恰好">
+<meta property="og:description" content="这是一个流程，  通过 SqlSessionFactory 开启一个 SqlSession  SqlSession 里有成员变量 MapperRegistry  MapperRegistry 里面通过包路径扫描，得到了一个 map 这个 map 封装了接口，跟它的代理类工厂 可以通过 get 的方式获得代理类工厂，用工厂的静态方法 new 出来一个代理对象 使用工厂模式可以屏蔽创建细节，延迟创建过">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-07-22T13:13:45.000Z">
+<meta property="article:modified_time" content="2024-08-18T06:33:09.786Z">
+<meta property="article:author" content="Dong Su">
+<meta property="article:tag" content="MyBatis">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>MyBatis-step02 - 辰光恰恰好</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"showyoubug.cn","root":"/","version":"1.9.5","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Dong Su</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MyBatis-step02"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-07-22 21:13" pubdate>
+          2024年7月22日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          59 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">MyBatis-step02</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>这是一个流程，</p>
+<ul>
+<li>通过 <code>SqlSessionFactory</code> 开启一个 <code>SqlSession</code> </li>
+<li><code>SqlSession</code> 里有成员变量 <code>MapperRegistry</code> </li>
+<li><code>MapperRegistry</code> 里面通过包路径扫描，得到了一个 map</li>
+<li>这个 map 封装了接口，跟它的代理类工厂</li>
+<li>可以通过 get 的方式获得代理类工厂，用工厂的静态方法 new 出来一个代理对象</li>
+<li><strong>使用工厂模式可以屏蔽创建细节，延迟创建过程</strong></li>
+</ul>
+<p>![image-20240818141349865](&#x2F;Users&#x2F;sudong&#x2F;Library&#x2F;Application Support&#x2F;typora-user-images&#x2F;image-20240818141349865.png)</p>
+<p>目前这个接口中对于数据库的操作仅仅只提供了 selectOne，后续还会有相应其他方法的定义</p>
+<h2 id="目录结构和代码"><a href="#目录结构和代码" class="headerlink" title="目录结构和代码"></a>目录结构和代码</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java">mybatis-step-<span class="hljs-number">02</span><br>└── src<br>    ├── main<br>    │   └── java<br>    │       └── cn.bugstack.mybatis<br>    │           ├── binding<br>    │           │   ├── MapperProxy.java<br>    │           │   ├── MapperProxyFactory.java<br>    │           │   └── MapperRegistry.java<br>    │           └── session<br>    │               ├── defaults<br>    │               │   ├── DefaultSqlSession.java<br>    │               │   └── DefaultSqlSessionFactory.java<br>    │               ├── SqlSession.java<br>    │               └── SqlSessionFactory.java<br>    └── test<br>        └── java<br>            └── cn.bugstack.mybatis.test.dao<br>                ├── dao<br>                │   ├── ISchoolDao.java<br>                │   └── IUserDao.java<br>                └── ApiTest.java<br><br></code></pre></td></tr></table></figure>
+
+
+
+<p>MapperProxy</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MapperProxy</span>&lt;T&gt; <span class="hljs-keyword">implements</span> <span class="hljs-title class_">InvocationHandler</span>, Serializable &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">long</span> <span class="hljs-variable">serialVersionUID</span> <span class="hljs-operator">=</span> -<span class="hljs-number">6424540398559729838L</span>;<br><br>    <span class="hljs-comment">// 所有的数据库操作语句都是通过 接口名称+方法名称作为 key，操作逻辑作为 value</span><br>    <span class="hljs-comment">// 在反射中调用就是获取对应的操作直接执行并返回结果</span><br>    <span class="hljs-keyword">private</span> SqlSession sqlSession;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Class&lt;T&gt; mapperInterface;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">MapperProxy</span><span class="hljs-params">(SqlSession sqlSession, Class&lt;T&gt; mapperInterface)</span> &#123;<br>        <span class="hljs-built_in">this</span>.sqlSession = sqlSession;<br>        <span class="hljs-built_in">this</span>.mapperInterface = mapperInterface;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> Object <span class="hljs-title function_">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable &#123;<br>        <span class="hljs-comment">// Object 类里的方法不代理</span><br>        <span class="hljs-keyword">if</span> (Object.class.equals(method.getDeclaringClass())) &#123;<br>            <span class="hljs-keyword">return</span> method.invoke(<span class="hljs-built_in">this</span>, args);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;你的被代理了！&quot;</span>;<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>MapperProxyFactory</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MapperProxyFactory</span>&lt;T&gt; &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Class&lt;T&gt; mapperInterface;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">MapperProxyFactory</span><span class="hljs-params">(Class&lt;T&gt; mapperInterface)</span> &#123;<br>        <span class="hljs-built_in">this</span>.mapperInterface = mapperInterface;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> T <span class="hljs-title function_">newInstance</span><span class="hljs-params">(SqlSession sqlSession)</span> &#123;<br>        <span class="hljs-keyword">final</span> MapperProxy&lt;T&gt; mapperProxy = <span class="hljs-keyword">new</span> <span class="hljs-title class_">MapperProxy</span>&lt;&gt;(sqlSession, mapperInterface);<br>        <span class="hljs-keyword">return</span> (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;mapperInterface&#125;, mapperProxy);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>MapperRegistry</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">MapperRegistry</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 将已添加的映射器代理加入到 HashMap</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;Class&lt;?&gt;, MapperProxyFactory&lt;?&gt;&gt; knownMappers = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 根据类型，返回工厂，再用工厂生成代理对象</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> type</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> sqlSession</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span></span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt;</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> &lt;T&gt; T <span class="hljs-title function_">getMapper</span><span class="hljs-params">(Class&lt;T&gt; type, SqlSession sqlSession)</span> &#123;<br>        <span class="hljs-keyword">final</span> MapperProxyFactory&lt;T&gt; mapperProxyFactory = (MapperProxyFactory&lt;T&gt;) knownMappers.get(type);<br>        <span class="hljs-keyword">if</span> (mapperProxyFactory == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Type &quot;</span> + type + <span class="hljs-string">&quot; is not known to the MapperRegistry.&quot;</span>);<br>        &#125;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">return</span> mapperProxyFactory.newInstance(sqlSession);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Error getting mapper instance. Cause: &quot;</span> + e, e);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 把 type 类型的添加到 knownMappers 这个 map 里</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-keyword">void</span> <span class="hljs-title function_">addMapper</span><span class="hljs-params">(Class&lt;T&gt; type)</span> &#123;<br>        <span class="hljs-comment">/* Mapper 必须是接口才会注册 */</span><br>        <span class="hljs-keyword">if</span> (type.isInterface()) &#123;<br>            <span class="hljs-keyword">if</span> (hasMapper(type)) &#123;<br>                <span class="hljs-comment">// 如果重复添加了，报错</span><br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(<span class="hljs-string">&quot;Type &quot;</span> + type + <span class="hljs-string">&quot; is already known to the MapperRegistry.&quot;</span>);<br>            &#125;<br>            <span class="hljs-comment">// 注册映射器代理工厂</span><br>            knownMappers.put(type, <span class="hljs-keyword">new</span> <span class="hljs-title class_">MapperProxyFactory</span>&lt;&gt;(type));<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 判断是否存在过</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> &lt;T&gt; <span class="hljs-type">boolean</span> <span class="hljs-title function_">hasMapper</span><span class="hljs-params">(Class&lt;T&gt; type)</span> &#123;<br>        <span class="hljs-keyword">return</span> knownMappers.containsKey(type);<br>    &#125;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 把包下的所有的类添加到 knownMappers 里</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> packageName</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">addMappers</span><span class="hljs-params">(String packageName)</span> &#123;<br>        <span class="hljs-comment">// 用于扫描指定包名下的所有类，并返回这些类的集合</span><br>        Set&lt;Class&lt;?&gt;&gt; mapperSet = ClassScanner.scanPackage(packageName);<br>        <span class="hljs-keyword">for</span> (Class&lt;?&gt; mapperClass : mapperSet) &#123;<br>            addMapper(mapperClass);<br>        &#125;<br>    &#125;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>DefaultSqlSession</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultSqlSession</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">SqlSession</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 映射器注册机</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> MapperRegistry mapperRegistry;<br><br>    DefaultSqlSession(MapperRegistry mapperRegistry)&#123;<br>        <span class="hljs-built_in">this</span>.mapperRegistry = mapperRegistry;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;T&gt; T <span class="hljs-title function_">selectOne</span><span class="hljs-params">(String statement)</span> &#123;<br>        <span class="hljs-keyword">return</span> (T) (<span class="hljs-string">&quot;你被代理了！&quot;</span> + <span class="hljs-string">&quot;方法：&quot;</span> + statement);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;T&gt; T <span class="hljs-title function_">selectOne</span><span class="hljs-params">(String statement, Object parameter)</span> &#123;<br>        <span class="hljs-keyword">return</span> (T) (<span class="hljs-string">&quot;你被代理了！&quot;</span> + <span class="hljs-string">&quot;方法：&quot;</span> + statement + <span class="hljs-string">&quot; 入参：&quot;</span> + parameter);<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> &lt;T&gt; T <span class="hljs-title function_">getMapper</span><span class="hljs-params">(Class&lt;T&gt; type)</span> &#123;<br>        <span class="hljs-keyword">return</span> mapperRegistry.getMapper(type, <span class="hljs-built_in">this</span>);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>DefaultSqlSessionFactory</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">DefaultSqlSessionFactory</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">SqlSessionFactory</span> &#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> MapperRegistry mapperRegistry;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-title function_">DefaultSqlSessionFactory</span><span class="hljs-params">(MapperRegistry mapperRegistry)</span> &#123;<br>        <span class="hljs-built_in">this</span>.mapperRegistry = mapperRegistry;<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> SqlSession <span class="hljs-title function_">openSession</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultSqlSession</span>(mapperRegistry);<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>SqlSession</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">SqlSession</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Retrieve a single row mapped from the statement key</span><br><span class="hljs-comment">     * 根据指定的SqlID获取一条记录的封装对象</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt;       the returned object type 封装之后的对象类型</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> statement sqlID</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> Mapped object 封装之后的对象</span><br><span class="hljs-comment">     */</span><br>    &lt;T&gt; T <span class="hljs-title function_">selectOne</span><span class="hljs-params">(String statement)</span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Retrieve a single row mapped from the statement key and parameter.</span><br><span class="hljs-comment">     * 根据指定的SqlID获取一条记录的封装对象，只不过这个方法容许我们可以给sql传递一些参数</span><br><span class="hljs-comment">     * 一般在实际使用中，这个参数传递的是pojo，或者Map或者ImmutableMap</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt;       the returned object type</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> statement Unique identifier matching the statement to use.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> parameter A parameter object to pass to the statement.</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> Mapped object</span><br><span class="hljs-comment">     */</span><br>    &lt;T&gt; T <span class="hljs-title function_">selectOne</span><span class="hljs-params">(String statement, Object parameter)</span>;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * Retrieves a mapper.</span><br><span class="hljs-comment">     * 得到映射器，这个巧妙的使用了泛型，使得类型安全</span><br><span class="hljs-comment">     *</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> &lt;T&gt;  the mapper type</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@param</span> type Mapper interface class</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> a mapper bound to this SqlSession</span><br><span class="hljs-comment">     */</span><br>    &lt;T&gt; T <span class="hljs-title function_">getMapper</span><span class="hljs-params">(Class&lt;T&gt; type)</span>;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>SqlSessionFactory</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">SqlSessionFactory</span> &#123;<br><br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 打开一个 session</span><br><span class="hljs-comment">     * <span class="hljs-doctag">@return</span> SqlSession</span><br><span class="hljs-comment">     */</span><br>    SqlSession <span class="hljs-title function_">openSession</span><span class="hljs-params">()</span>;<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>Dao 层接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">ISchoolDao</span> &#123;<br><br>    String <span class="hljs-title function_">querySchoolName</span><span class="hljs-params">(String uId)</span>;<br><br>&#125;<br><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">IUserDao</span> &#123;<br><br>    String <span class="hljs-title function_">queryUserName</span><span class="hljs-params">(String uId)</span>;<br><br>    Integer <span class="hljs-title function_">queryUserAge</span><span class="hljs-params">(String uId)</span>;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>测试方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@Test</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">test_MapperProxyFactory</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">// 1. 注册 Mapper</span><br>    <span class="hljs-type">MapperRegistry</span> <span class="hljs-variable">registry</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">MapperRegistry</span>();<br>    registry.addMappers(<span class="hljs-string">&quot;cn.bugstack.mybatis.test.dao&quot;</span>);<br><br>    <span class="hljs-comment">// 2. 从 SqlSession 工厂获取 Session</span><br>    <span class="hljs-type">SqlSessionFactory</span> <span class="hljs-variable">sqlSessionFactory</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">DefaultSqlSessionFactory</span>(registry);<br>    <span class="hljs-type">SqlSession</span> <span class="hljs-variable">sqlSession</span> <span class="hljs-operator">=</span> sqlSessionFactory.openSession();<br><br>    <span class="hljs-comment">// 3. 获取映射器对象</span><br>    <span class="hljs-type">IUserDao</span> <span class="hljs-variable">userDao</span> <span class="hljs-operator">=</span> sqlSession.getMapper(IUserDao.class);<br><br>    <span class="hljs-comment">// 4. 测试验证</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">res</span> <span class="hljs-operator">=</span> userDao.queryUserName(<span class="hljs-string">&quot;10001&quot;</span>);<br>    logger.info(<span class="hljs-string">&quot;测试结果：&#123;&#125;&quot;</span>, res);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="答疑"><a href="#答疑" class="headerlink" title="答疑"></a>答疑</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> * Retrieves a mapper.</span><br><span class="hljs-comment"> * 得到映射器，这个巧妙的使用了泛型，使得类型安全</span><br><span class="hljs-comment"> *</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> &lt;T&gt;  the mapper type</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@param</span> type Mapper interface class</span><br><span class="hljs-comment"> * <span class="hljs-doctag">@return</span> a mapper bound to this SqlSession</span><br><span class="hljs-comment"> */</span><br>&lt;T&gt; T <span class="hljs-title function_">getMapper</span><span class="hljs-params">(Class&lt;T&gt; type)</span>;<br></code></pre></td></tr></table></figure>
+
+<p>如何理解 “巧妙地使用了泛型，使得类型安全”</p>
+<p>在这个方法里，<code>&lt;T&gt;</code> 表示这是一个泛型方法，其中传入的参数是 <code>Class&lt;T&gt;</code> 这说明参数的类型与返回值的类型应该相等</p>
+<p>类型安全意味着编译器会在编译时进行类型检查，以防止类型错误，通过泛型，<code>getMapper</code> 方法能够确保返回的对象类型与调用者期望的类型一致，避免了强制类型转换</p>
+<p>在调用的时候可以这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">UserMapper</span> <span class="hljs-variable">userMapper</span> <span class="hljs-operator">=</span> sqlSesson.getMapepr(UserMapper.class);<br></code></pre></td></tr></table></figure>
+
+<p>与非泛型方法对比</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> Object <span class="hljs-title function_">getMapper</span><span class="hljs-params">(Class&lt;?&gt; type)</span>;<br></code></pre></td></tr></table></figure>
+
+<p>在调用的时候需要强制类型转换，编译器无法验证类型转换是否正确，可能在运行时抛出 <code>ClassCastException</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-type">UserMapper</span> <span class="hljs-variable">userMapper</span> <span class="hljs-operator">=</span> (UserMapper) sqlSession.getMapper(UserMapper.class);<br></code></pre></td></tr></table></figure>
+
+
+
+<p>本篇文章是在小傅哥的基础上，添加了自己的理解写下的<br>小傅哥博客：<a target="_blank" rel="noopener" href="https://bugstack.cn/">https://bugstack.cn</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/MyBatis/" class="print-no-link">#MyBatis</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MyBatis-step02</div>
+      <div>http://showyoubug.cn/2024/07/22/MyBatis-step02/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>Dong Su</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年7月22日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2024/07/23/MyBatis-step03/" title="MyBatis-step03">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">MyBatis-step03</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/07/21/MyBatis-step01/" title="MyBatis-step01">
+                        <span class="hidden-mobile">MyBatis-step01</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
