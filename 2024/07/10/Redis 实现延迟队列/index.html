@@ -17,20 +17,24 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta property="og:type" content="article">
-<meta property="og:title" content="MyBatis-step03">
-<meta property="og:url" content="http://showyoubug.cn/2024/07/23/MyBatis-step03/index.html">
+    <meta name="description" content="Redis 做延迟队列有两种方案：  Redis 过期时间监听 Redisson 内置的延迟队列  Redis 过期事件监听实现延迟队列Redis 有发布订阅（pub&#x2F;sub）功能，在 pub&#x2F;sub，引入了 channel（频道），类似于消息队列的 topic （主题） pub&#x2F;sub 涉及发布者publisher 和 订阅者 subscriber 两个角色  发布">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis 实现延迟队列">
+<meta property="og:url" content="http://showyoubug.cn/2024/07/10/Redis%20%E5%AE%9E%E7%8E%B0%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
+<meta property="og:description" content="Redis 做延迟队列有两种方案：  Redis 过期时间监听 Redisson 内置的延迟队列  Redis 过期事件监听实现延迟队列Redis 有发布订阅（pub&#x2F;sub）功能，在 pub&#x2F;sub，引入了 channel（频道），类似于消息队列的 topic （主题） pub&#x2F;sub 涉及发布者publisher 和 订阅者 subscriber 两个角色  发布">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-07-23T13:13:45.000Z">
-<meta property="article:modified_time" content="2024-08-19T14:29:26.908Z">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240811213610.png">
+<meta property="article:published_time" content="2024-07-10T10:13:30.000Z">
+<meta property="article:modified_time" content="2024-09-06T13:29:39.917Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="MyBatis">
+<meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20240811213610.png">
   
   
   
-  <title>MyBatis-step03 - 辰光恰恰好</title>
+  <title>Redis 实现延迟队列 - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -196,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="MyBatis-step03"></span>
+            <span id="subtitle" data-typed-text="Redis 实现延迟队列"></span>
           
         </div>
 
@@ -207,8 +211,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-07-23 21:13" pubdate>
-          2024年7月23日 晚上
+        <time datetime="2024-07-10 18:13" pubdate>
+          2024年7月10日 晚上
         </time>
       </span>
     
@@ -219,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          0 字
+          1k 字
         
       </span>
     
@@ -230,7 +234,7 @@
         
         
         
-          1 分钟
+          9 分钟
         
       </span>
     
@@ -267,12 +271,44 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">MyBatis-step03</h1>
+            <h1 id="seo-header">Redis 实现延迟队列</h1>
             
             
               <div class="markdown-body">
                 
-                
+                <p>Redis 做延迟队列有两种方案：</p>
+<ul>
+<li>Redis 过期时间监听</li>
+<li>Redisson 内置的延迟队列</li>
+</ul>
+<h2 id="Redis-过期事件监听实现延迟队列"><a href="#Redis-过期事件监听实现延迟队列" class="headerlink" title="Redis 过期事件监听实现延迟队列"></a>Redis 过期事件监听实现延迟队列</h2><p>Redis 有发布订阅（pub&#x2F;sub）功能，在 pub&#x2F;sub，引入了 <code>channel（频道）</code>，类似于消息队列的 topic （主题）</p>
+<p>pub&#x2F;sub 涉及发布者<code>publisher</code> 和 订阅者 <code>subscriber</code> 两个角色</p>
+<ul>
+<li>发布者通过 <code>publish</code> 投递给指定的 channel</li>
+<li>订阅者通过 subscribe 订阅一个或多个的 channel</li>
+</ul>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20240811213610.png" srcset="/img/loading.gif" lazyload></p>
+<p>生产者指定消息到 channel，消费者订阅对应的 channel</p>
+<p>Redis 中有很多默认的 channel，这些 channel 是由 Redis 本身向它们发送消息，<code>__keyevent@0__:expired</code> 就是一个默认的 channel，负责监听 key 的过期事件</p>
+<p>当一个 key 过期之后，Redis 会发布一个 key 过期的事件到这个 channel 中</p>
+<p>只需要监听这个 channel，就可以拿到过期的 key 的消息，进而实现了延迟队列</p>
+<h3 id="缺点-1：时效性差"><a href="#缺点-1：时效性差" class="headerlink" title="缺点 1：时效性差"></a>缺点 1：时效性差</h3><p>过期事件是在 Redis 删除 key 时发布的，不是设置的过期时间到的时候直接发布</p>
+<p>过期删除策略有 2 个</p>
+<ul>
+<li>惰性删除，对 CPU 友好，但是可能导致过期的 key 没有删除</li>
+<li>定期删除，每隔一段时间抽取一批 key 执行删除，对内存友好</li>
+</ul>
+<p>Redis 采用的是 定期删除+惰性删除，因此会存在 key 过期了，但是事件还未发布</p>
+<h3 id="缺点2：丢消息"><a href="#缺点2：丢消息" class="headerlink" title="缺点2：丢消息"></a>缺点2：丢消息</h3><p>Redis 中消息不支持持久化，当 channel 没有订阅者时，消息会被直接丢弃</p>
+<h3 id="缺点3：多服务实例下存在消息重复问题"><a href="#缺点3：多服务实例下存在消息重复问题" class="headerlink" title="缺点3：多服务实例下存在消息重复问题"></a>缺点3：多服务实例下存在消息重复问题</h3><p>Redis 的消息队列只有广播模式，所有订阅指定 channel 的实例全都能收到消息，需要处理重复消费问题</p>
+<h2 id="Redisson-内置的延迟队列实现"><a href="#Redisson-内置的延迟队列实现" class="headerlink" title="Redisson 内置的延迟队列实现"></a>Redisson 内置的延迟队列实现</h2><p>Redisson的延迟队列 RDelayedQueue 是基于 ZSet 实现的，需要执行延迟的任务插入到 ZSet 中，并给他们设置相应的过期时间作为分数</p>
+<p>使用 <code>zrangebyscore</code> 命令扫描 ZSet 中过期的元素，然后将这些过期元素从 ZSet 中移除，并将它们加入到就绪消息列表中。就绪消息列表是一个阻塞队列，有消息进入就会被监听到。这样做可以避免对整个 ZSet 进行轮询，提高了执行效率</p>
+<p>优势：</p>
+<ul>
+<li>减少了丢消息的可能：DelayedQueue 中的消息会被持久化，即使Redis宕机了，根据持久化机制，也只可能丢失一点消息，影响不大。也可以使用扫描数据库的方法作为补偿机制。</li>
+<li>消息不存在重复消费问题：每个客户端都是从同一个目标队列中获取任务的，不存在重复消费的问题。</li>
+</ul>
+
                 
               </div>
             
@@ -284,7 +320,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/MyBatis/" class="print-no-link">#MyBatis</a>
+        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
       
     </div>
   
@@ -296,8 +332,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>MyBatis-step03</div>
-      <div>http://showyoubug.cn/2024/07/23/MyBatis-step03/</div>
+      <div>Redis 实现延迟队列</div>
+      <div>http://showyoubug.cn/2024/07/10/Redis 实现延迟队列/</div>
     </div>
     <div class="license-meta">
       
@@ -309,7 +345,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年7月23日</div>
+          <div>2024年7月10日</div>
         </div>
       
       
@@ -341,9 +377,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" title="Redisson 延迟队列">
+                      <a href="/2024/07/17/%E5%AE%89%E5%85%A8%E7%82%B9SafePoint/" title="安全点 SafePoint">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Redisson 延迟队列</span>
+                        <span class="hidden-mobile">安全点 SafePoint</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -351,8 +387,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/07/23/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E9%95%BF%E8%BD%AE%E8%AF%A2/" title="配置中心的长轮询">
-                        <span class="hidden-mobile">配置中心的长轮询</span>
+                      <a href="/2024/07/06/Timeline/" title="Feed 流 —— Timeline">
+                        <span class="hidden-mobile">Feed 流 —— Timeline</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

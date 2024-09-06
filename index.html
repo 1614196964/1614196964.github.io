@@ -225,6 +225,86 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/08/16/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C/" target="_self">
+          一致性哈希
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/16/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C/" target="_self">
+        <div>
+          一致性哈希问题是为了解决请求负载均衡的 负载均衡算法在多节点分布式系统中，如何有效分配客户端请求以实现负载均衡  轮询算法  加权轮询算法  哈希算法  上面两中对于数据分片就不适用了，比如缓存的 key 分布在不同的节点上，通过哈希函数和取模运算可以将请求映射到特定节点   一致性哈希   一致性哈希算法普通哈希算法存在问题，当节点数增加的时候，需要重新计算映射关系，也要迁移数据 比如一开始有
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-16 21:13" pubdate>
+              2024-08-16
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/">#分布式</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+          Redisson 延迟队列
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+        <div>
+          Redisson 延迟队列底层实现底层用 3 个队列实现  消息延迟队列，Zset 类型，按照过期时间顺序存放消息列表 消息顺序队列，List 类型，按照添加顺序存放消息列表 消息目标队列，List 类型，存放到期的消息，供消费者获取  消息来的时候先插入【消息延迟队列】和【消息顺序队列】 最后消费者在【消息目标队列】进行消费的，消费者只需要阻塞等待【消息目标队列】即可 消息移动在初始化延迟队列的
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-07-30 18:13" pubdate>
+              2024-07-30
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/07/23/MyBatis-step03/" target="_self">
           MyBatis-step03
         </a>
@@ -252,6 +332,46 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/MyBatis/">#MyBatis</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/07/23/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E9%95%BF%E8%BD%AE%E8%AF%A2/" target="_self">
+          配置中心的长轮询
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/23/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E9%95%BF%E8%BD%AE%E8%AF%A2/" target="_self">
+        <div>
+          配置中心的长轮询配置中心是为了解决传统静态配置修改重启应用的问题，Nacos 和 Apollo 都是通过长轮询来实现动态推送的，而不是长连接 推拉模式数据交互有两种模式：【推模式 push】和【拉模式 pull】  推模式是客户端和服务器建立好长链接，服务器的数据推送到客户端 优点，及时，一旦有数据变更，客户端立马能感知到 缺点，不知道客户端消费能力，可能导致数据堆积   拉模式是客户端主动向服务
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-07-23 16:13" pubdate>
+              2024-07-23
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83/">#配置中心</a>
             
           </div>
         
@@ -385,13 +505,13 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/07/10/Redis%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
-          Redis 延迟队列
+        <a href="/2024/07/10/Redis%20%E5%AE%9E%E7%8E%B0%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+          Redis 实现延迟队列
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/10/Redis%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/10/Redis%20%E5%AE%9E%E7%8E%B0%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
         <div>
           Redis 做延迟队列有两种方案：  Redis 过期时间监听 Redisson 内置的延迟队列  Redis 过期事件监听实现延迟队列Redis 有发布订阅（pub&#x2F;sub）功能，在 pub&#x2F;sub，引入了 channel（频道），类似于消息队列的 topic （主题） pub&#x2F;sub 涉及发布者publisher 和 订阅者 subscriber 两个角色  发布
         </div>
@@ -499,131 +619,11 @@
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/29/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/" target="_self">
-          观察者模式
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/29/%E8%A7%82%E5%AF%9F%E8%80%85%E6%A8%A1%E5%BC%8F/" target="_self">
-        <div>
-          观察者模式是一种一对多的关系，当一个对象状态发生改变时，所有依赖于它的对象都得到通知并完成更新  被观察者（Observerable）：目标对象，状态发生变化时，通知所有的观察者 观察者（Observer）：接收被观察者状态变化通知  例如异步通知场景  定义被观察者  12345678910111213141516171819202122232425262728293031public clas
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-29 21:13" pubdate>
-              2024-06-29
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/26/%E6%9E%9A%E4%B8%BE%E5%AE%9E%E7%8E%B0%E8%B4%A3%E4%BB%BB%E9%93%BE/" target="_self">
-          枚举实现责任链
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/26/%E6%9E%9A%E4%B8%BE%E5%AE%9E%E7%8E%B0%E8%B4%A3%E4%BB%BB%E9%93%BE/" target="_self">
-        <div>
-          责任链允许请求沿着处理者链进行处理，类似于拦截器 责任链由三部分组成  抽象处理者（Handler）：定义一个处理请求的抽象类，包含处理方法和一个 next 指针 具体处理者：实现抽象处理者方法 客户端  抽象处理者 123456789public abstract class GatewayHandler &#123;    protected GatewayHandler next;    p
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-26 21:13" pubdate>
-              2024-06-26
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/25/%E6%A8%A1%E7%89%88%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F/" target="_self">
-          模版方法模式
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/25/%E6%A8%A1%E7%89%88%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F/" target="_self">
-        <div>
-          定义操作中的骨架流程，将一些步骤延迟加载到子类中，使子类可以不改变结构即可重新定义该流程的特定步骤  一个抽象类，定义骨架流程  例如一个请求经过流程分为如下步骤  解析请求头 封装数据 返回请求体  1234567891011121314public abstract class AbstractRequestService &#123;    abstract void resolveHead
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-25 21:13" pubdate>
-              2024-06-25
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/#board">2</a><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/2/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 
