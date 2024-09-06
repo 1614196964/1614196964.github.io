@@ -265,6 +265,46 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/08/10/CountDownLatch/" target="_self">
+          CountDownLatch
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/10/CountDownLatch/" target="_self">
+        <div>
+          CountDownLatch 类存在一个内部类 Sync 继承自 AbstractQueueSynchronizer  所以 CountDownLatch 也是基于 AQS 实现的，其中 state 表示前面有几个线程需要等待 核心函数内部类结构类中只有一个成员变量 Sync 这个类继承了 AbstractQueueSynchronizer 1234public class CountDownLa
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-10 18:13" pubdate>
+              2024-08-10
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/JUC/">#JUC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
           Redisson 延迟队列
         </a>
@@ -563,46 +603,6 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2024-07-06 20:13" pubdate>
               2024-07-06
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">#系统设计</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/03/%E7%82%B9%E8%B5%9E%E4%B8%9A%E5%8A%A1%E8%AE%BE%E8%AE%A1/" target="_self">
-          点赞业务设计
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/03/%E7%82%B9%E8%B5%9E%E4%B8%9A%E5%8A%A1%E8%AE%BE%E8%AE%A1/" target="_self">
-        <div>
-          点赞内容点赞是一个非常高频的业务场景，功能本身复杂度不高，但是业务场景多，QPS 高，而且由于社区的用户体量，整体点赞的数据量非常大 点赞服务需要提供的接口有  对某个内容点赞（取消点赞）、点踩（取消点踩） 查询是否对 单个 或者 一批内容 点过赞（踩） - 即点赞状态查询 查询某个内容的点赞数 查询某个用户的点赞列表 查询某个内容的点赞人列表 查询用户收到的总点赞数  其中最核心的主要是  用户
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-03 20:13" pubdate>
-              2024-07-03
             </time>
           </div>
         
