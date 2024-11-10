@@ -23,7 +23,7 @@
   
   
   <entry>
-    <title>MyBatis 缓存</title>
+    <title>MyBatis 缓存设计思想</title>
     <link href="/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/"/>
     <url>/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/</url>
     
@@ -33,7 +33,7 @@
     
     <tags>
       
-      <tag>MyBatis，设计模式</tag>
+      <tag>MyBatis 设计模式</tag>
       
     </tags>
     
@@ -52,7 +52,7 @@
     
     <tags>
       
-      <tag>MyBatis，设计模式</tag>
+      <tag>MyBatis 设计模式</tag>
       
     </tags>
     

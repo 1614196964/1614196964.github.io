@@ -19,7 +19,7 @@
   
     <meta name="description" content="缓存本质其实就是一个 Map，MyBatis 的缓存最基本的实现是 PerpetualCache，内部使用了 HashMap 来保存数据 缓存一般还有额外的功能比如淘汰策略，最大时长等，如何扩展这些功能？ 扩展类的功能有 2 种，继承和组合，但是 MyBatis 提供了很多功能并且有的是动态组合的，比如容量上限 512，淘汰策略 LRU… 如果是集成的话，那要把所有排列组合都实现一遍，会导致类爆炸">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MyBatis 缓存">
+<meta property="og:title" content="MyBatis 缓存设计思想">
 <meta property="og:url" content="http://showyoubug.cn/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
 <meta property="og:description" content="缓存本质其实就是一个 Map，MyBatis 的缓存最基本的实现是 PerpetualCache，内部使用了 HashMap 来保存数据 缓存一般还有额外的功能比如淘汰策略，最大时长等，如何扩展这些功能？ 扩展类的功能有 2 种，继承和组合，但是 MyBatis 提供了很多功能并且有的是动态组合的，比如容量上限 512，淘汰策略 LRU… 如果是集成的话，那要把所有排列组合都实现一遍，会导致类爆炸">
@@ -29,15 +29,15 @@
 <meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110112245.png">
 <meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110112525.png">
 <meta property="article:published_time" content="2024-08-30T13:13:45.000Z">
-<meta property="article:modified_time" content="2024-11-10T03:26:25.961Z">
+<meta property="article:modified_time" content="2024-11-10T06:38:40.653Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="MyBatis，设计模式">
+<meta property="article:tag" content="MyBatis 设计模式">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110110554.png">
   
   
   
-  <title>MyBatis 缓存 - 辰光恰恰好</title>
+  <title>MyBatis 缓存设计思想 - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -203,7 +203,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="MyBatis 缓存"></span>
+            <span id="subtitle" data-typed-text="MyBatis 缓存设计思想"></span>
           
         </div>
 
@@ -274,7 +274,7 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">MyBatis 缓存</h1>
+            <h1 id="seo-header">MyBatis 缓存设计思想</h1>
             
             
               <div class="markdown-body">
@@ -327,7 +327,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/MyBatis%EF%BC%8C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#MyBatis，设计模式</a>
+        <a href="/tags/MyBatis-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#MyBatis 设计模式</a>
       
     </div>
   
@@ -339,7 +339,7 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>MyBatis 缓存</div>
+      <div>MyBatis 缓存设计思想</div>
       <div>http://showyoubug.cn/2024/08/30/MyBatis 缓存设计思想/</div>
     </div>
     <div class="license-meta">
