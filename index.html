@@ -225,6 +225,166 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/" target="_self">
+          Redis 能存多少个 Key
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/" target="_self">
+        <div>
+          数据结构Redis 的键值对存在哪里？ 哈希表 dictEntry 存储的是实际键值对，定义如下 12345678910typedef struct dictEntry &#123;    void *key;    union &#123;        void *val;        uint64_t u64;        int64_t s64;        double d;
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-09-07 21:13" pubdate>
+              2024-09-07
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" target="_self">
+          MyBatis 缓存
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" target="_self">
+        <div>
+          缓存本质其实就是一个 Map，MyBatis 的缓存最基本的实现是 PerpetualCache，内部使用了 HashMap 来保存数据 缓存一般还有额外的功能比如淘汰策略，最大时长等，如何扩展这些功能？ 扩展类的功能有 2 种，继承和组合，但是 MyBatis 提供了很多功能并且有的是动态组合的，比如容量上限 512，淘汰策略 LRU… 如果是集成的话，那要把所有排列组合都实现一遍，会导致类爆炸
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-30 21:13" pubdate>
+              2024-08-30
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/MyBatis%EF%BC%8C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#MyBatis，设计模式</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/08/23/MyBatis%20%E6%97%A5%E5%BF%97%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" target="_self">
+          MyBatis 日志设计思想
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/23/MyBatis%20%E6%97%A5%E5%BF%97%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" target="_self">
+        <div>
+          整体架构用了门面模式，对外暴露 SqlSession 接口  日志模块，采用了适配器模式  如果需要接入多个第三方 SDK 来满足自己的业务需求，但是 SDK 的接口定义与你的业务不兼容，又不能修改第三方 SDK 的代码，可以用适配器设计模式解决  MyBatis 定义了自己 Log 接口，为大部分主流日志框架都实现了 Adapter 适配器 1234567891011121314151617pu
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-23 21:13" pubdate>
+              2024-08-23
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/MyBatis%EF%BC%8C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#MyBatis，设计模式</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/08/20/ThreadPoolExecutor/" target="_self">
+          ThreadPoolExecutor
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/08/20/ThreadPoolExecutor/" target="_self">
+        <div>
+          ThreadPoolExecutor线程池对象，如果里面添加了任务，如果不手动调用 shutdown 方法，那么这个对象永远不会被 GC 首先看一下 ThreadPoolExecutor 的源码结构 ThreadPoolExecutor 里面有一个内部类 Worker 这个内部类实现了 Runnable 接口 这个 Worker 类里有一个 runWorker 方法，是保证线程不断运行的原理 12
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-08-20 21:13" pubdate>
+              2024-08-20
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/%E6%BA%90%E7%A0%81/">#源码</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/08/16/%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C/" target="_self">
           一致性哈希
         </a>
@@ -345,46 +505,6 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/07/23/MyBatis-step03/" target="_self">
-          MyBatis-step03
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/23/MyBatis-step03/" target="_self">
-        <div>
-          
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-23 21:13" pubdate>
-              2024-07-23
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/MyBatis/">#MyBatis</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
         <a href="/2024/07/23/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E9%95%BF%E8%BD%AE%E8%AF%A2/" target="_self">
           配置中心的长轮询
         </a>
@@ -492,126 +612,6 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/MyBatis/">#MyBatis</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/17/%E5%AE%89%E5%85%A8%E7%82%B9SafePoint/" target="_self">
-          安全点 SafePoint
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/17/%E5%AE%89%E5%85%A8%E7%82%B9SafePoint/" target="_self">
-        <div>
-          安全点HotSpot 虚拟机并非在代码指令流的任意位置都能停下来开始垃圾回收的，而是强制要求必须执行到安全点后才能够暂停 安全点的选定基本上是以“是否具有让程序长时间执行的特征” 为标准进行选定的，最明显的特征是指令系列的复用，所以只有具有这些功能的指令才会产生安全点  方法调用 循环跳转 异常跳转  循环HotSpot 虚拟机为了避免安全点过多带来过重的负担，对循环有一项优化措施，认为循环次数较
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-17 10:13" pubdate>
-              2024-07-17
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/JVM/">#JVM</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/10/Redis%20%E5%AE%9E%E7%8E%B0%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
-          Redis 实现延迟队列
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/10/Redis%20%E5%AE%9E%E7%8E%B0%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
-        <div>
-          Redis 做延迟队列有两种方案：  Redis 过期时间监听 Redisson 内置的延迟队列  Redis 过期事件监听实现延迟队列Redis 有发布订阅（pub&#x2F;sub）功能，在 pub&#x2F;sub，引入了 channel（频道），类似于消息队列的 topic （主题） pub&#x2F;sub 涉及发布者publisher 和 订阅者 subscriber 两个角色  发布
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-10 18:13" pubdate>
-              2024-07-10
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/Redis/">#Redis</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/07/06/Timeline/" target="_self">
-          Feed 流 —— Timeline
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/06/Timeline/" target="_self">
-        <div>
-          Timeline本文介绍基于关注关系并按时间排列的 Feed 流 Feed 流有两种工作模式，推模式和拉模式 拉模式在用户查询时应该首先查询用户关注的所有博主的 uid 查询他们发布的作品，最后按照发布时间降序排列 拉模式用户每打开一次 “关注页” 系统就需要读取 N 个人的文章（N 为用户关注的博主数）所以拉模式又被称为读扩散 拉模式不需要额外存储数据  发布文章在 articles 表增加一条
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-07-06 20:13" pubdate>
-              2024-07-06
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">#系统设计</a>
             
           </div>
         

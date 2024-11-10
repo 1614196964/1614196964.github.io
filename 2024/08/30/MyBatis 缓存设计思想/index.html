@@ -17,20 +17,27 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta property="og:type" content="article">
-<meta property="og:title" content="MyBatis-step03">
-<meta property="og:url" content="http://showyoubug.cn/2024/07/23/MyBatis-step03/index.html">
+    <meta name="description" content="缓存本质其实就是一个 Map，MyBatis 的缓存最基本的实现是 PerpetualCache，内部使用了 HashMap 来保存数据 缓存一般还有额外的功能比如淘汰策略，最大时长等，如何扩展这些功能？ 扩展类的功能有 2 种，继承和组合，但是 MyBatis 提供了很多功能并且有的是动态组合的，比如容量上限 512，淘汰策略 LRU… 如果是集成的话，那要把所有排列组合都实现一遍，会导致类爆炸">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MyBatis 缓存">
+<meta property="og:url" content="http://showyoubug.cn/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
+<meta property="og:description" content="缓存本质其实就是一个 Map，MyBatis 的缓存最基本的实现是 PerpetualCache，内部使用了 HashMap 来保存数据 缓存一般还有额外的功能比如淘汰策略，最大时长等，如何扩展这些功能？ 扩展类的功能有 2 种，继承和组合，但是 MyBatis 提供了很多功能并且有的是动态组合的，比如容量上限 512，淘汰策略 LRU… 如果是集成的话，那要把所有排列组合都实现一遍，会导致类爆炸">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-07-23T13:13:45.000Z">
-<meta property="article:modified_time" content="2024-08-19T14:29:26.908Z">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110110554.png">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110111022.png">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110112245.png">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110112525.png">
+<meta property="article:published_time" content="2024-08-30T13:13:45.000Z">
+<meta property="article:modified_time" content="2024-11-10T03:26:25.961Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="MyBatis">
+<meta property="article:tag" content="MyBatis，设计模式">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110110554.png">
   
   
   
-  <title>MyBatis-step03 - 辰光恰恰好</title>
+  <title>MyBatis 缓存 - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -196,7 +203,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="MyBatis-step03"></span>
+            <span id="subtitle" data-typed-text="MyBatis 缓存"></span>
           
         </div>
 
@@ -207,8 +214,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-07-23 21:13" pubdate>
-          2024年7月23日 晚上
+        <time datetime="2024-08-30 21:13" pubdate>
+          2024年8月30日 晚上
         </time>
       </span>
     
@@ -219,7 +226,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          0 字
+          1.5k 字
         
       </span>
     
@@ -230,7 +237,7 @@
         
         
         
-          1 分钟
+          13 分钟
         
       </span>
     
@@ -267,12 +274,48 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">MyBatis-step03</h1>
+            <h1 id="seo-header">MyBatis 缓存</h1>
             
             
               <div class="markdown-body">
                 
-                
+                <p>缓存本质其实就是一个 Map，MyBatis 的缓存最基本的实现是 PerpetualCache，内部使用了 HashMap 来保存数据</p>
+<p>缓存一般还有额外的功能比如淘汰策略，最大时长等，如何扩展这些功能？</p>
+<p>扩展类的功能有 2 种，继承和组合，但是 MyBatis 提供了很多功能并且有的是动态组合的，比如容量上限 512，淘汰策略 LRU… 如果是集成的话，那要把所有排列组合都实现一遍，会导致类爆炸</p>
+<p>MyBatis 采用了<strong>装饰器模式</strong>，采用<strong>组合</strong>的方式扩展新功能</p>
+<blockquote>
+<p>装饰器模式使用的是组合方式，相较于继承这种静态的扩展方式，装饰器模式可以在运行时根据系统状态，动态决定为一个实现类添加哪些扩展功能</p>
+</blockquote>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241110110554.png" srcset="/img/loading.gif" lazyload></p>
+<ul>
+<li>Component 接口：已有的业务接口，是<strong>整个功能的核心抽象</strong>，定义了 Decorator 和 ComponentImpl 这些实现类的核心行为<ul>
+<li>JDK 中的 IO 流体系就使用了装饰器模式，其中的 InputStream 接口就扮演了 Component 接口的角色</li>
+</ul>
+</li>
+<li>ComponentImpl 实现类：实现了上面介绍的 Component 接口，其中<strong>实现了 Component 接口最基础、最核心的功能</strong>，也就是被装饰的、原始的基础类<ul>
+<li>JDK IO 流体系之中的 FileInputStream 就扮演了 ComponentImpl 的角色，它实现了读取文件的基本能力，例如，读取单个 byte、读取 byte[] 数组</li>
+</ul>
+</li>
+<li>Decorator 抽象类：所有装饰器的父类，实现了 Component 接口，<strong>其核心不是提供新的扩展能力，而是封装一个 Component 类型的字段，也就是被装饰的目标对象</strong><ul>
+<li>这里的被装饰对象可以是ComponentImpl 对象，也可以是 Decorator 实现类的对象</li>
+<li>下面DecoratorImpl1 装饰了 DecoratorImpl2，DecoratorImpl2 装饰了 ComponentImpl，经过了这一系列装饰之后得到的 Component 对象，除了具有 ComponentImpl 的基础能力之外，还拥有了 DecoratorImpl1 和 DecoratorImpl2 的扩展能力</li>
+</ul>
+</li>
+</ul>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241110111022.png" srcset="/img/loading.gif" lazyload></p>
+<p>MyBatis 中<strong>除了 PerpetualCache 之外的其他所有 Cache 接口实现类，都是装饰器实现</strong></p>
+<blockquote>
+<p>Spring 中的 IoC容器，它有各种各样的实现类，完全就是通过继承进行功能的扩展，与 MyBatis 的实现思路截然不同，为什么?</p>
+</blockquote>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241110112245.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241110112525.png" srcset="/img/loading.gif" lazyload></p>
+<p>对比MyBatis 的 Cache 继承体系图和 BeanFactory 的继承体系图装饰器模式可以动态、灵活的扩展新的功能，但是它有一个问题，就是客户端的可控程度比较低。</p>
+<p>无论缓存扩展了哪些功能，对于客户端来说，暴露的都只是一个 Cache 接口，客户端并不知道此时缓存已经具有了哪些能力，甚至如果客户端对内部实现不了解，自己扩展了两个互斥的包装器，还会引起系统异常的风险。 </p>
+<p>对于 MyBatis 来说，它内置的缓存功能在绝大部分场景下都是不需要客户度自行开发和扩展的，客户端只需要指定我需要缓存的哪些功能就好。在这个前提，MyBatis 可以放心地使用装饰器模式。 </p>
+<p>而 Spring 则不同，它提供的 BeanFactory、ApplicationContext 这一整套 IoC 容器，是直接暴露给客户端使用的，有时还会基于已有的容器进行二次开发。这样就需要客户端有较强的把控能力，需要明确的知道我当前使用的是哪种 BeanFactory，它具有哪些能力。</p>
+<p>如果像 MyBatis 一样，只对外暴露一个 BeanFactory 接口，那么客户端进行二次开发就十分不友好了。 </p>
+<p>总结起来，造成 MyBatis 和 Spring 这种扩展思路的差异的最重要原因之一，就是 MyBatis 的 Cache 模块需要降低用户学习成本，直接指定需要增加的功能即可；而 Spring 的 IoC 容器则是为客户端的使用和二次开发提供了更大的空间。</p>
+
                 
               </div>
             
@@ -284,7 +327,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/MyBatis/" class="print-no-link">#MyBatis</a>
+        <a href="/tags/MyBatis%EF%BC%8C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#MyBatis，设计模式</a>
       
     </div>
   
@@ -296,8 +339,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>MyBatis-step03</div>
-      <div>http://showyoubug.cn/2024/07/23/MyBatis-step03/</div>
+      <div>MyBatis 缓存</div>
+      <div>http://showyoubug.cn/2024/08/30/MyBatis 缓存设计思想/</div>
     </div>
     <div class="license-meta">
       
@@ -309,7 +352,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年7月23日</div>
+          <div>2024年8月30日</div>
         </div>
       
       
@@ -341,9 +384,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" title="Redisson 延迟队列">
+                      <a href="/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/" title="Redis 能存多少个 Key">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Redisson 延迟队列</span>
+                        <span class="hidden-mobile">Redis 能存多少个 Key</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -351,8 +394,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/07/23/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E9%95%BF%E8%BD%AE%E8%AF%A2/" title="配置中心的长轮询">
-                        <span class="hidden-mobile">配置中心的长轮询</span>
+                      <a href="/2024/08/23/MyBatis%20%E6%97%A5%E5%BF%97%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" title="MyBatis 日志设计思想">
+                        <span class="hidden-mobile">MyBatis 日志设计思想</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

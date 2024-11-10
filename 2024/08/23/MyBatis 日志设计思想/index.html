@@ -17,22 +17,24 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Redisson 延迟队列底层实现底层用 3 个队列实现  消息延迟队列，Zset 类型，按照过期时间顺序存放消息列表 消息顺序队列，List 类型，按照添加顺序存放消息列表 消息目标队列，List 类型，存放到期的消息，供消费者获取  消息来的时候先插入【消息延迟队列】和【消息顺序队列】 最后消费者在【消息目标队列】进行消费的，消费者只需要阻塞等待【消息目标队列】即可 消息移动在初始化延迟队列的">
+    <meta name="description" content="整体架构用了门面模式，对外暴露 SqlSession 接口  日志模块，采用了适配器模式  如果需要接入多个第三方 SDK 来满足自己的业务需求，但是 SDK 的接口定义与你的业务不兼容，又不能修改第三方 SDK 的代码，可以用适配器设计模式解决  MyBatis 定义了自己 Log 接口，为大部分主流日志框架都实现了 Adapter 适配器 1234567891011121314151617pu">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redisson 延迟队列">
-<meta property="og:url" content="http://showyoubug.cn/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/index.html">
+<meta property="og:title" content="MyBatis 日志设计思想">
+<meta property="og:url" content="http://showyoubug.cn/2024/08/23/MyBatis%20%E6%97%A5%E5%BF%97%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
-<meta property="og:description" content="Redisson 延迟队列底层实现底层用 3 个队列实现  消息延迟队列，Zset 类型，按照过期时间顺序存放消息列表 消息顺序队列，List 类型，按照添加顺序存放消息列表 消息目标队列，List 类型，存放到期的消息，供消费者获取  消息来的时候先插入【消息延迟队列】和【消息顺序队列】 最后消费者在【消息目标队列】进行消费的，消费者只需要阻塞等待【消息目标队列】即可 消息移动在初始化延迟队列的">
+<meta property="og:description" content="整体架构用了门面模式，对外暴露 SqlSession 接口  日志模块，采用了适配器模式  如果需要接入多个第三方 SDK 来满足自己的业务需求，但是 SDK 的接口定义与你的业务不兼容，又不能修改第三方 SDK 的代码，可以用适配器设计模式解决  MyBatis 定义了自己 Log 接口，为大部分主流日志框架都实现了 Adapter 适配器 1234567891011121314151617pu">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-07-30T10:13:30.000Z">
-<meta property="article:modified_time" content="2024-09-06T13:30:06.255Z">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110104348.png">
+<meta property="article:published_time" content="2024-08-23T13:13:45.000Z">
+<meta property="article:modified_time" content="2024-11-10T02:55:19.720Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="MyBatis，设计模式">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241110104348.png">
   
   
   
-  <title>Redisson 延迟队列 - 辰光恰恰好</title>
+  <title>MyBatis 日志设计思想 - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Redisson 延迟队列"></span>
+            <span id="subtitle" data-typed-text="MyBatis 日志设计思想"></span>
           
         </div>
 
@@ -209,8 +211,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-07-30 18:13" pubdate>
-          2024年7月30日 晚上
+        <time datetime="2024-08-23 21:13" pubdate>
+          2024年8月23日 晚上
         </time>
       </span>
     
@@ -221,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.7k 字
+          2.4k 字
         
       </span>
     
@@ -232,7 +234,7 @@
         
         
         
-          14 分钟
+          21 分钟
         
       </span>
     
@@ -269,36 +271,29 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Redisson 延迟队列</h1>
+            <h1 id="seo-header">MyBatis 日志设计思想</h1>
             
             
               <div class="markdown-body">
                 
-                <h2 id="Redisson-延迟队列"><a href="#Redisson-延迟队列" class="headerlink" title="Redisson 延迟队列"></a>Redisson 延迟队列</h2><h3 id="底层实现"><a href="#底层实现" class="headerlink" title="底层实现"></a>底层实现</h3><p>底层用 3 个队列实现</p>
-<ol>
-<li>消息延迟队列，Zset 类型，按照过期时间顺序存放消息列表</li>
-<li>消息顺序队列，List 类型，按照添加顺序存放消息列表</li>
-<li>消息目标队列，List 类型，存放到期的消息，供消费者获取</li>
-</ol>
-<p>消息来的时候先插入【消息延迟队列】和【消息顺序队列】</p>
-<p>最后消费者在【消息目标队列】进行消费的，消费者只需要阻塞等待【消息目标队列】即可</p>
-<h3 id="消息移动"><a href="#消息移动" class="headerlink" title="消息移动"></a>消息移动</h3><p>在初始化延迟队列的时候，会定时从【消息延迟队列】查询到最新到期时间，定时把【消息延迟队列】的消息移动到【消息目标队列】</p>
-<p>如果【消息延迟队列】是空的，就不再定时差，而是等待发布订阅消息提醒，再定时把【消息延迟队列】的消息移动到【消息目标队列】</p>
-<h3 id="发送和获取延迟消息"><a href="#发送和获取延迟消息" class="headerlink" title="发送和获取延迟消息"></a>发送和获取延迟消息</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 生产者</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">produce</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">queuename</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;delay-queue&quot;</span>;<br>    RBlockingQueue&lt;String&gt; blockingQueue = redissonClient.getBlockingQueue(queuename);<br>    RDelayedQueue&lt;String&gt; delayedQueue = redissonClient.getDelayedQueue(blockingQueue);<br>    delayedQueue.offer(<span class="hljs-string">&quot;测试延迟消息&quot;</span>, <span class="hljs-number">5</span>, TimeUnit.SECONDS);<br>&#125;<br><br><span class="hljs-comment">// 消费者</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">consume</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException &#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">queuename</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;delay-queue&quot;</span>;<br>    RBlockingQueue&lt;String&gt; blockingQueue = redissonClient.getBlockingQueue(queuename);<br>    RDelayedQueue&lt;String&gt; delayedQueue = redissonClient.getDelayedQueue(blockingQueue);<br>    <span class="hljs-type">String</span> <span class="hljs-variable">msg</span> <span class="hljs-operator">=</span> blockingQueue.take();<br>    <span class="hljs-comment">//收到消息进行处理...</span><br>&#125;<br></code></pre></td></tr></table></figure>
+                <p>整体架构用了门面模式，对外暴露 SqlSession 接口</p>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241110104348.png" srcset="/img/loading.gif" lazyload></p>
+<p>日志模块，采用了适配器模式</p>
+<blockquote>
+<p>如果需要接入多个第三方 SDK 来满足自己的业务需求，但是 SDK 的接口定义与你的业务不兼容，又不能修改第三方 SDK 的代码，可以用适配器设计模式解决</p>
+</blockquote>
+<p>MyBatis 定义了自己 Log 接口，为大部分主流日志框架都实现了 Adapter 适配器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">interface</span> <span class="hljs-title class_">Log</span> &#123;<br><br>  <span class="hljs-type">boolean</span> <span class="hljs-title function_">isDebugEnabled</span><span class="hljs-params">()</span>;<br><br>  <span class="hljs-type">boolean</span> <span class="hljs-title function_">isTraceEnabled</span><span class="hljs-params">()</span>;<br><br>  <span class="hljs-keyword">void</span> <span class="hljs-title function_">error</span><span class="hljs-params">(String s, Throwable e)</span>;<br><br>  <span class="hljs-keyword">void</span> <span class="hljs-title function_">error</span><span class="hljs-params">(String s)</span>;<br><br>  <span class="hljs-keyword">void</span> <span class="hljs-title function_">debug</span><span class="hljs-params">(String s)</span>;<br><br>  <span class="hljs-keyword">void</span> <span class="hljs-title function_">trace</span><span class="hljs-params">(String s)</span>;<br><br>  <span class="hljs-keyword">void</span> <span class="hljs-title function_">warn</span><span class="hljs-params">(String s)</span>;<br><br>&#125;<br></code></pre></td></tr></table></figure>
 
+<p>定义了四种 Log 级别，以 Slf4j 实现为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Slf4jImpl</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">Log</span> &#123;<br><br>  <span class="hljs-keyword">private</span> Log log;<br><br>  <span class="hljs-keyword">public</span> <span class="hljs-title function_">Slf4jImpl</span><span class="hljs-params">(String clazz)</span> &#123;<br>    <span class="hljs-type">Logger</span> <span class="hljs-variable">logger</span> <span class="hljs-operator">=</span> LoggerFactory.getLogger(clazz);<br><br>    <span class="hljs-keyword">if</span> (logger <span class="hljs-keyword">instanceof</span> LocationAwareLogger) &#123;<br>      <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// check for slf4j &gt;= 1.6 method signature</span><br>        logger.getClass().getMethod(<span class="hljs-string">&quot;log&quot;</span>, Marker.class, String.class, <span class="hljs-type">int</span>.class, String.class, Object[].class,<br>            Throwable.class);<br>        log = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Slf4jLocationAwareLoggerImpl</span>((LocationAwareLogger) logger);<br>        <span class="hljs-keyword">return</span>;<br>      &#125; <span class="hljs-keyword">catch</span> (SecurityException | NoSuchMethodException e) &#123;<br>        <span class="hljs-comment">// fail-back to Slf4jLoggerImpl</span><br>      &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// Logger is not LocationAwareLogger or slf4j version &lt; 1.6</span><br>    log = <span class="hljs-keyword">new</span> <span class="hljs-title class_">Slf4jLoggerImpl</span>(logger);<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isDebugEnabled</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> log.isDebugEnabled();<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-type">boolean</span> <span class="hljs-title function_">isTraceEnabled</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">return</span> log.isTraceEnabled();<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">error</span><span class="hljs-params">(String s, Throwable e)</span> &#123;<br>    log.error(s, e);<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">error</span><span class="hljs-params">(String s)</span> &#123;<br>    log.error(s);<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">debug</span><span class="hljs-params">(String s)</span> &#123;<br>    log.debug(s);<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">trace</span><span class="hljs-params">(String s)</span> &#123;<br>    log.trace(s);<br>  &#125;<br><br>  <span class="hljs-meta">@Override</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">warn</span><span class="hljs-params">(String s)</span> &#123;<br>    log.warn(s);<br>  &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
 
+<p>同时定义了一个 LogFactory 类，日志的实例是从这里获取的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">LogFactory</span> &#123;<br><br>  <span class="hljs-comment">/**</span><br><span class="hljs-comment">   * Marker to be used by logging implementations that support markers.</span><br><span class="hljs-comment">   */</span><br>  <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">MARKER</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;MYBATIS&quot;</span>;<br><br>  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Constructor&lt;? <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Log</span>&gt; logConstructor;<br><br>  <span class="hljs-keyword">static</span> &#123;<br>    tryImplementation(LogFactory::useSlf4jLogging);<br>    tryImplementation(LogFactory::useCommonsLogging);<br>    tryImplementation(LogFactory::useLog4J2Logging);<br>    tryImplementation(LogFactory::useLog4JLogging);<br>    tryImplementation(LogFactory::useJdkLogging);<br>    tryImplementation(LogFactory::useNoLogging);<br>  &#125;<br><br>  <span class="hljs-keyword">private</span> <span class="hljs-title function_">LogFactory</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">// disable construction</span><br>  &#125;<br>  <span class="hljs-comment">//...</span><br>&#125;<br></code></pre></td></tr></table></figure>
 
-<h3 id="初始化延迟队列"><a href="#初始化延迟队列" class="headerlink" title="初始化延迟队列"></a>初始化延迟队列</h3><p>主要是调用了 <code>QueueTransferTask</code> 的 <code>start()</code> 方法</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java">    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">start</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-type">RTopic</span> <span class="hljs-variable">schedulerTopic</span> <span class="hljs-operator">=</span> getTopic();<br>        statusListenerId = schedulerTopic.addListener(<span class="hljs-keyword">new</span> <span class="hljs-title class_">BaseStatusListener</span>() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onSubscribe</span><span class="hljs-params">(String channel)</span> &#123;<br>                pushTask();<br>            &#125;<br>        &#125;);<br>        <br>        messageListenerId = schedulerTopic.addListener(Long.class, <span class="hljs-keyword">new</span> <span class="hljs-title class_">MessageListener</span>&lt;Long&gt;() &#123;<br>            <span class="hljs-meta">@Override</span><br>            <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onMessage</span><span class="hljs-params">(CharSequence channel, Long startTime)</span> &#123;<br>                scheduleTask(startTime);<br>            &#125;<br>        &#125;);<br>    &#125;<br><br></code></pre></td></tr></table></figure>
-
-<p>队列有新的消费者订阅时，调用 <code>pushTask()</code> 方法，把消息发送出去</p>
-<p>指定主题有新消息时，调用 <code>scheduleTask(startTime)</code> 方法，会定时调用 <code>pushTask()</code> 方法，把消息发送出去</p>
-<h3 id="为什么在消费端也要初始化延迟队列？"><a href="#为什么在消费端也要初始化延迟队列？" class="headerlink" title="为什么在消费端也要初始化延迟队列？"></a>为什么在消费端也要初始化延迟队列？</h3><p>接收消息的时候明明用不到 <code>delayedQueue</code> 为什么还要加？</p>
-<ul>
-<li>初始化延迟队列的作用是会定时把【消息延迟队列】的到期数据移动到【消息目标队列】</li>
-<li>如果发送方发送了延迟消息，但在到期之前下线了，接收方就接收不到了</li>
-<li>所以是为了避免一部分数据丢失问题</li>
-</ul>
+<p>通过静态代码块定义了类加载的顺序，slf4j -&gt; commons-logging -&gt; log4j2 -&gt; log4j -&gt; jdk-logging -&gt; no-logging</p>
+<p>如果项目中有对应的依赖，则通过反射加载对应的日志接口</p>
+<p>By the way，MyBatis 通过JDK 动态代理记录数据库连接，预编译语句，和结果记录，分别是 ConnectionLogger、PreparedStatementLogger 和 ResultSetLogger</p>
 
                 
               </div>
@@ -311,7 +306,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
+        <a href="/tags/MyBatis%EF%BC%8C%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="print-no-link">#MyBatis，设计模式</a>
       
     </div>
   
@@ -323,8 +318,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Redisson 延迟队列</div>
-      <div>http://showyoubug.cn/2024/07/30/Redisson 延迟队列/</div>
+      <div>MyBatis 日志设计思想</div>
+      <div>http://showyoubug.cn/2024/08/23/MyBatis 日志设计思想/</div>
     </div>
     <div class="license-meta">
       
@@ -336,7 +331,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年7月30日</div>
+          <div>2024年8月23日</div>
         </div>
       
       
@@ -368,9 +363,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/08/10/CountDownLatch/" title="CountDownLatch">
+                      <a href="/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" title="MyBatis 缓存">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">CountDownLatch</span>
+                        <span class="hidden-mobile">MyBatis 缓存</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -378,8 +373,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/07/23/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E9%95%BF%E8%BD%AE%E8%AF%A2/" title="配置中心的长轮询">
-                        <span class="hidden-mobile">配置中心的长轮询</span>
+                      <a href="/2024/08/20/ThreadPoolExecutor/" title="ThreadPoolExecutor">
+                        <span class="hidden-mobile">ThreadPoolExecutor</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
