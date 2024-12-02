@@ -17,22 +17,24 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta name="description" content="数据结构Redis 的键值对存在哪里？ 哈希表 dictEntry 存储的是实际键值对，定义如下 12345678910typedef struct dictEntry &#123;    void *key;    union &#123;        void *val;        uint64_t u64;        int64_t s64;        double d;">
+    <meta name="description" content="Memcached 和 Redis 内存管理传统的 C 语言的 malloc&#x2F;free 函数是最常用的分配和释放内存的方法，但是这种方法存在着很大的缺陷  不匹配的malloc和free容易造成内存泄露 频繁调用会造成大量内存碎片无法回收重新利用，降低内存利用率 作为系统调用，其系统开销远远大于一般函数调用  MemcachedMemcached默认使用Slab Allocation机制">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis 能存多少个 Key">
-<meta property="og:url" content="http://showyoubug.cn/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/index.html">
+<meta property="og:title" content="Memcached 和 Redis 内存管理">
+<meta property="og:url" content="http://showyoubug.cn/2024/09/20/Memcached%20%E5%92%8C%20Redis%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
-<meta property="og:description" content="数据结构Redis 的键值对存在哪里？ 哈希表 dictEntry 存储的是实际键值对，定义如下 12345678910typedef struct dictEntry &#123;    void *key;    union &#123;        void *val;        uint64_t u64;        int64_t s64;        double d;">
+<meta property="og:description" content="Memcached 和 Redis 内存管理传统的 C 语言的 malloc&#x2F;free 函数是最常用的分配和释放内存的方法，但是这种方法存在着很大的缺陷  不匹配的malloc和free容易造成内存泄露 频繁调用会造成大量内存碎片无法回收重新利用，降低内存利用率 作为系统调用，其系统开销远远大于一般函数调用  MemcachedMemcached默认使用Slab Allocation机制">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-09-07T13:13:45.000Z">
-<meta property="article:modified_time" content="2024-11-10T06:35:37.386Z">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241202224158.png">
+<meta property="article:published_time" content="2024-09-20T12:13:45.000Z">
+<meta property="article:modified_time" content="2024-12-02T14:51:02.424Z">
 <meta property="article:author" content="Dong Su">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241202224158.png">
   
   
   
-  <title>Redis 能存多少个 Key - 辰光恰恰好</title>
+  <title>Memcached 和 Redis 内存管理 - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -198,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Redis 能存多少个 Key"></span>
+            <span id="subtitle" data-typed-text="Memcached 和 Redis 内存管理"></span>
           
         </div>
 
@@ -209,8 +211,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-09-07 21:13" pubdate>
-          2024年9月7日 晚上
+        <time datetime="2024-09-20 20:13" pubdate>
+          2024年9月20日 晚上
         </time>
       </span>
     
@@ -221,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.5k 字
+          769 字
         
       </span>
     
@@ -232,7 +234,7 @@
         
         
         
-          13 分钟
+          7 分钟
         
       </span>
     
@@ -269,39 +271,19 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Redis 能存多少个 Key</h1>
+            <h1 id="seo-header">Memcached 和 Redis 内存管理</h1>
             
             
               <div class="markdown-body">
                 
-                <h2 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h2><p>Redis 的键值对存在哪里？ 哈希表</p>
-<p>dictEntry 存储的是实际键值对，定义如下</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">dictEntry</span> &#123;<br>    <span class="hljs-type">void</span> *key;<br>    <span class="hljs-keyword">union</span> &#123;<br>        <span class="hljs-type">void</span> *val;<br>        <span class="hljs-type">uint64_t</span> u64;<br>        <span class="hljs-type">int64_t</span> s64;<br>        <span class="hljs-type">double</span> d;<br>    &#125; v;<br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">dictEntry</span> *next;<br>&#125; dictEntry;<br></code></pre></td></tr></table></figure>
-
-<p>dictht是哈希表，它的定义如下</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">dictht</span> &#123;<br><br>    <span class="hljs-comment">//dictEntry数组链表</span><br>    dictEntry **table;<br>    <br>    <span class="hljs-comment">//数组的长度</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> size;<br>    <br>    <span class="hljs-comment">//数组掩码，等于size-1</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> sizemask;<br>    <br>    <span class="hljs-comment">//键值个数</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> used;<br>&#125; dictht;<br></code></pre></td></tr></table></figure>
-
-<p>Redis 的 kv 里面不是直接存字符串 key 是 sds，value 是 redisObject</p>
-<h2 id="冲突处理"><a href="#冲突处理" class="headerlink" title="冲突处理"></a>冲突处理</h2><p>因为每个数组下标对应一个链表，如果一个新的 key 算出的数组下标已经包含了其他的 dictEntry，只需要把新的 key 对应的 dictEntry 挂在链表的第一个位置即可（因为是新插入的，可能马上会用到）</p>
-<h2 id="扩缩容"><a href="#扩缩容" class="headerlink" title="扩缩容"></a>扩缩容</h2><p>单纯依赖链表做冲突处理，链表会越来越长，读写效率差，所以需要对哈希表扩容</p>
-<p>对于 Redis 来说，一个哈希结构内置了两个哈希表，一个用于使用，另一个平时闲置，待时机成熟，扩容一倍，将数据迁移到另一个哈希表中</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">dict</span> &#123;<br>    dictType *type;<br>    <span class="hljs-type">void</span> *privdata;<br>    dictht ht[<span class="hljs-number">2</span>];<br>    <span class="hljs-type">long</span> rehashidx; <span class="hljs-comment">/* rehashing not in progress if rehashidx == -1 */</span><span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> iterators; <span class="hljs-comment">/* number of iterators currently running */</span><br>&#125; dict;<br></code></pre></td></tr></table></figure>
-
-<p>其中 rehashidx 表示当前 dict 是否正在做 rehash，如果为 -1 表示没有 rehash，当 used &gt; 2^n 时候，需要扩容（rehashidx 表示ht[0] 在 rehash 的时候所在的索引值）</p>
-<p>为了保证 Redis 单线程的高效性，整个 rehash 是渐进式的，全部迁移完成之后 rehashidx 置为 -1 对于key的路由来说，它依然先从dict[0]去找，如果找到了，就顺便把它迁移到dict[1]。如果没找到就要从dict[1]去找</p>
-<h2 id="能存多少-key"><a href="#能存多少-key" class="headerlink" title="能存多少 key?"></a>能存多少 key?</h2><p>先说结论：最好千万级别</p>
-<p>size 定义了数组的长度，由于它是 <code>unsigned long</code> （4 个字节）所以理论上可以存 2 ^ 32 个元素</p>
-<p>官方回答说最好放 2.5 亿个键值对</p>
-<p>原因：</p>
+                <h1 id="Memcached-和-Redis-内存管理"><a href="#Memcached-和-Redis-内存管理" class="headerlink" title="Memcached 和 Redis 内存管理"></a>Memcached 和 Redis 内存管理</h1><p>传统的 C 语言的 malloc&#x2F;free 函数是最常用的分配和释放内存的方法，但是这种方法存在着很大的缺陷</p>
 <ol>
-<li>rehash 问题，导致内存异常增长，由于要为 <code>ht[1]</code> 分配空间，大小取决于 <code>ht[0]</code> 当前包含的数量</li>
-<li>死键问题，Redis 将所有键值对保存在 dict 中，还有一个 <code>dict *expires</code> 用来保存过期键，如果键值数量过多，并设置了过期时间，会导致内存占用</li>
+<li>不匹配的malloc和free容易造成内存泄露</li>
+<li>频繁调用会造成大量内存碎片无法回收重新利用，降低内存利用率</li>
+<li>作为系统调用，其系统开销远远大于一般函数调用</li>
 </ol>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span> <span class="hljs-title class_">redisDb</span> &#123;<br>    dict *dict;    <span class="hljs-comment">/* The keyspace for this DB */</span><br>    dict *expires; <span class="hljs-comment">/* Timeout of keys with a timeout set */</span><br>    ......<br>&#125; redisDb;<br></code></pre></td></tr></table></figure>
-
-<ol start="3">
-<li>Redis有最大内存淘汰机制(maxmemory-policy)，如果键值个数过多，那么可能逐出的就会更多，也就意味段时间内有大量的删除操作，甚至会造成Redis段时间不可用</li>
-</ol>
+<h2 id="Memcached"><a href="#Memcached" class="headerlink" title="Memcached"></a>Memcached</h2><p>Memcached默认使用Slab Allocation机制管理内存，其主要思想是按照预先规定的大小，将分配的内存分割成特定长度的块以存储相应长度的key-value数据记录，以完全解决内存碎片问题<br><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241202224158.png" srcset="/img/loading.gif" lazyload><br>首先从操作系统申请一大块内存，并将其分割成各种尺寸的块Chunk，并把尺寸相同的块分成组Slab Class<br>当Memcached接收到客户端发送过来的数据时首先会根据收到数据的大小选择一个最合适的Slab Class，然后通过查询Memcached保存着的该Slab Class内空闲Chunk的列表就可以找到一个可用于存储数据的Chunk。当一条数据库过期或者丢弃时，该记录所占用的Chunk就可以回收，重新添加到空闲列表中<br>Memcached的内存管理制效率高，而且不会造成内存碎片，但是它最大的缺点就是会导致空间浪费。比如将100个字节的数据缓存到128个字节的Chunk中，剩余的28个字节就浪费掉了</p>
+<h2 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h2><p>Redis为了方便内存的管理，在分配一块内存之后，会将这块内存的大小存入内存块的头部<br>在Redis中，并不是所有的数据都一直存储在内存中的。这是和Memcached相比一个最大的区别<br>当物理内存用完时，Redis可以将一些很久没用到的value交换到磁盘，Redis 只会缓存所有 key 的信息<br>如果 Redis 发现内存的使用量超过了某一个阈值，将会触发 swap 操作，将某些 key 对应的 value 持久化到磁盘中，同时在内存中清除。</p>
 
                 
               </div>
@@ -326,8 +308,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Redis 能存多少个 Key</div>
-      <div>http://showyoubug.cn/2024/09/07/Redis 能存多少个 Key/</div>
+      <div>Memcached 和 Redis 内存管理</div>
+      <div>http://showyoubug.cn/2024/09/20/Memcached 和 Redis 内存管理/</div>
     </div>
     <div class="license-meta">
       
@@ -339,7 +321,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年9月7日</div>
+          <div>2024年9月20日</div>
         </div>
       
       
@@ -371,18 +353,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/09/20/Memcached%20%E5%92%8C%20Redis%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="Memcached 和 Redis 内存管理">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Memcached 和 Redis 内存管理</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/08/30/MyBatis%20%E7%BC%93%E5%AD%98%E8%AE%BE%E8%AE%A1%E6%80%9D%E6%83%B3/" title="MyBatis 缓存设计思想">
-                        <span class="hidden-mobile">MyBatis 缓存设计思想</span>
+                      <a href="/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/" title="Redis 能存多少个 Key">
+                        <span class="hidden-mobile">Redis 能存多少个 Key</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

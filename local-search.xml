@@ -4,6 +4,25 @@
   
   
   <entry>
+    <title>Memcached 和 Redis 内存管理</title>
+    <link href="/2024/09/20/Memcached%20%E5%92%8C%20Redis%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/"/>
+    <url>/2024/09/20/Memcached%20%E5%92%8C%20Redis%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/</url>
+    
+    <content type="html"><![CDATA[<h1 id="Memcached-和-Redis-内存管理"><a href="#Memcached-和-Redis-内存管理" class="headerlink" title="Memcached 和 Redis 内存管理"></a>Memcached 和 Redis 内存管理</h1><p>传统的 C 语言的 malloc&#x2F;free 函数是最常用的分配和释放内存的方法，但是这种方法存在着很大的缺陷</p><ol><li>不匹配的malloc和free容易造成内存泄露</li><li>频繁调用会造成大量内存碎片无法回收重新利用，降低内存利用率</li><li>作为系统调用，其系统开销远远大于一般函数调用</li></ol><h2 id="Memcached"><a href="#Memcached" class="headerlink" title="Memcached"></a>Memcached</h2><p>Memcached默认使用Slab Allocation机制管理内存，其主要思想是按照预先规定的大小，将分配的内存分割成特定长度的块以存储相应长度的key-value数据记录，以完全解决内存碎片问题<br><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241202224158.png"><br>首先从操作系统申请一大块内存，并将其分割成各种尺寸的块Chunk，并把尺寸相同的块分成组Slab Class<br>当Memcached接收到客户端发送过来的数据时首先会根据收到数据的大小选择一个最合适的Slab Class，然后通过查询Memcached保存着的该Slab Class内空闲Chunk的列表就可以找到一个可用于存储数据的Chunk。当一条数据库过期或者丢弃时，该记录所占用的Chunk就可以回收，重新添加到空闲列表中<br>Memcached的内存管理制效率高，而且不会造成内存碎片，但是它最大的缺点就是会导致空间浪费。比如将100个字节的数据缓存到128个字节的Chunk中，剩余的28个字节就浪费掉了</p><h2 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h2><p>Redis为了方便内存的管理，在分配一块内存之后，会将这块内存的大小存入内存块的头部<br>在Redis中，并不是所有的数据都一直存储在内存中的。这是和Memcached相比一个最大的区别<br>当物理内存用完时，Redis可以将一些很久没用到的value交换到磁盘，Redis 只会缓存所有 key 的信息<br>如果 Redis 发现内存的使用量超过了某一个阈值，将会触发 swap 操作，将某些 key 对应的 value 持久化到磁盘中，同时在内存中清除。</p>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>Redis</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>Redis 能存多少个 Key</title>
     <link href="/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/"/>
     <url>/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/</url>
