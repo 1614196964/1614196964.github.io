@@ -17,24 +17,24 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Caffeine 淘汰策略使用了 W-TinyLFU 算法，该算法主要有两部分  采用 Count-Min Sketch 算法降低频率信息带来的内存消耗 通过维护一个 PK 机制保障新上的热点数据能够被缓存  Count-Min Sketch 算法该算法首先认为：对于频率统计，我们其实不需要一个精确值。在存储数据时，它首先对 key 进行多种 hash 函数运算，然后在各个 hash 函数对应的二">
+    <meta name="description" content="Memcached为什么比Redis更能抗热点热点问题的本质热点 key 最主要的问题还是它会导致缓存的流量不均衡，会导致单节点流量过高，无法发挥集群的作用，整个Redis集群能支撑的QPS就退化成了单个实例能支撑的QPS了 Memcached 为什么抗热点性能更好第一个是 Memcached 通过多线程可以利用多核，从而可以显著提升单个实例的吞吐，针对这种流量倾斜的情况可以更好的应对 下图是一个">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Caffeine 淘汰策略">
-<meta property="og:url" content="http://showyoubug.cn/2024/09/30/Caffeine%20%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/index.html">
+<meta property="og:title" content="Memcached为什么比Redis更能抗热点">
+<meta property="og:url" content="http://showyoubug.cn/2024/10/17/Memcached%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%94Redis%E6%9B%B4%E8%83%BD%E6%8A%97%E7%83%AD%E7%82%B9/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
-<meta property="og:description" content="Caffeine 淘汰策略使用了 W-TinyLFU 算法，该算法主要有两部分  采用 Count-Min Sketch 算法降低频率信息带来的内存消耗 通过维护一个 PK 机制保障新上的热点数据能够被缓存  Count-Min Sketch 算法该算法首先认为：对于频率统计，我们其实不需要一个精确值。在存储数据时，它首先对 key 进行多种 hash 函数运算，然后在各个 hash 函数对应的二">
+<meta property="og:description" content="Memcached为什么比Redis更能抗热点热点问题的本质热点 key 最主要的问题还是它会导致缓存的流量不均衡，会导致单节点流量过高，无法发挥集群的作用，整个Redis集群能支撑的QPS就退化成了单个实例能支撑的QPS了 Memcached 为什么抗热点性能更好第一个是 Memcached 通过多线程可以利用多核，从而可以显著提升单个实例的吞吐，针对这种流量倾斜的情况可以更好的应对 下图是一个">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20250109213928.png">
-<meta property="article:published_time" content="2024-09-30T12:13:45.000Z">
-<meta property="article:modified_time" content="2025-01-09T13:40:50.950Z">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20250109222030.png">
+<meta property="article:published_time" content="2024-10-17T02:13:30.000Z">
+<meta property="article:modified_time" content="2025-01-09T14:22:35.417Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="本地缓存">
+<meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20250109213928.png">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20250109222030.png">
   
   
   
-  <title>Caffeine 淘汰策略 - 辰光恰恰好</title>
+  <title>Memcached为什么比Redis更能抗热点 - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Caffeine 淘汰策略"></span>
+            <span id="subtitle" data-typed-text="Memcached为什么比Redis更能抗热点"></span>
           
         </div>
 
@@ -211,8 +211,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-09-30 20:13" pubdate>
-          2024年9月30日 晚上
+        <time datetime="2024-10-17 10:13" pubdate>
+          2024年10月17日 上午
         </time>
       </span>
     
@@ -223,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          963 字
+          1.1k 字
         
       </span>
     
@@ -234,7 +234,7 @@
         
         
         
-          9 分钟
+          10 分钟
         
       </span>
     
@@ -271,33 +271,21 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Caffeine 淘汰策略</h1>
+            <h1 id="seo-header">Memcached为什么比Redis更能抗热点</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Caffeine-淘汰策略"><a href="#Caffeine-淘汰策略" class="headerlink" title="Caffeine 淘汰策略"></a>Caffeine 淘汰策略</h1><p>使用了 W-TinyLFU 算法，该算法主要有两部分</p>
-<ol>
-<li>采用 Count-Min Sketch 算法降低频率信息带来的内存消耗</li>
-<li>通过维护一个 PK 机制保障新上的热点数据能够被缓存</li>
-</ol>
-<h2 id="Count-Min-Sketch-算法"><a href="#Count-Min-Sketch-算法" class="headerlink" title="Count-Min Sketch 算法"></a>Count-Min Sketch 算法</h2><p>该算法首先认为：对于频率统计，我们其实不需要一个精确值。在存储数据时，它首先对 key 进行多种 hash 函数运算，然后在各个 hash 函数对应的二维数组索引位置的记录值 +1</p>
-<p>多个 hash 算法是为了避免 hash 冲突</p>
-<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20250109213928.png" srcset="/img/loading.gif" lazyload></p>
-<p>为了解决这个问题，采用多个 hash 算法，假设使用四种 hash 算法从该 key 在所有 hash 算法下映射的位置取数值最低的一个数作为访问频率（上图访问频率为 1）</p>
-<p>Caffeine 也利用了 Count-Min Sketch 的思想，但是它有稍微的变化</p>
-<p>Caffeine 使用一维 long 数组用来记录数据的访问频率，数组的大小为2的 N 次方，由缓存大小决定。假设缓存大小是 100，数组的大小需要满足：</p>
-<p>简单来说就是，数组的大小就是第一个大于等于缓存大小的 2 的 N 次方。如果缓存大小为 100，那么用于记录数据访问频率的数组大小就是128</p>
-<h2 id="PK-机制"><a href="#PK-机制" class="headerlink" title="PK 机制"></a>PK 机制</h2><p>Caffeine 所有的数据都存储在 ConcurrentHashMap 中。在 Caffeine 中有三个用于存储引用的 LRU 队列，分别是</p>
-<ul>
-<li>Window Cache</li>
-<li>Probation Cache</li>
-<li>Protected Cache</li>
-</ul>
-<p>其中Probation Cache 和 Protected Cache 组成了 Main Cache。正常情况下，Window Cache 占比大小为 1%，Probation Cache 大小为剩下的 99% 的 20%，Protected Cache 大小为剩下的 99% 的 80%</p>
-<p>新数据直接进入 Window 区，当 Window 区满了，就会根据 LRU 算法把 Candidate（即淘汰出来的元素）放到 Probation 区</p>
-<p>如果在 Probation 区的数据被访问到，会直接进入到Protected区。如果Protected区满了，该区淘汰出的数据将降级到Probation区</p>
-<p>如果 Probation 区满了，就把 Candidate 和 Probation 区的 Victim（将要淘汰的元素），两个进行 “PK”（比较两者频率大小），胜者将留在 Probation，输者就要被淘汰了。也就是说，实际上的数据淘汰，只在 Probation 区发生</p>
+                <h1 id="Memcached为什么比Redis更能抗热点"><a href="#Memcached为什么比Redis更能抗热点" class="headerlink" title="Memcached为什么比Redis更能抗热点"></a>Memcached为什么比Redis更能抗热点</h1><h2 id="热点问题的本质"><a href="#热点问题的本质" class="headerlink" title="热点问题的本质"></a>热点问题的本质</h2><p>热点 key 最主要的问题还是它会导致缓存的流量不均衡，会导致单节点流量过高，无法发挥集群的作用，整个Redis集群能支撑的QPS就退化成了单个实例能支撑的QPS了</p>
+<h2 id="Memcached-为什么抗热点性能更好"><a href="#Memcached-为什么抗热点性能更好" class="headerlink" title="Memcached 为什么抗热点性能更好"></a>Memcached 为什么抗热点性能更好</h2><p>第一个是 Memcached 通过多线程可以利用多核，从而可以显著提升单个实例的吞吐，针对这种流量倾斜的情况可以更好的应对</p>
+<p>下图是一个例子，假设每个CPU核能支撑5W QPS（不考虑其他的开销，比如多线程的开销，实现的不同），Memcached和Redis从集群维度都可以抗10W QPS，但是具体到热点请求，单个Redis实例就只能抗5W QPS了，这样两者的抗热点能力就差了一倍，线上我们的Memcached实例通常会开10个线程或者更多，Memcached和Redis单实例的吞吐能力会有更大的差异</p>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20250109222030.png" srcset="/img/loading.gif" lazyload></p>
+<p>如果我们的机器只有1核，对于get&#x2F;set的操作Memcached的抗热点能力可能还不如Redis，因为多线程还会有一些部分额外的开销</p>
+<p>第二个是Redis的一些数据结构的操作复杂度并不是O(1)，比如zrange，复杂度是O(log(N) + M)，如果对于有1000(对应N)个元素的zset取100(对应M)个，那它的开销肯定要远大于get，对于这些操作单个redis实例能支撑QPS会降低很多，那相应的抗热点能力也会更差</p>
+<h2 id="Memcached-一定能抗热点吗"><a href="#Memcached-一定能抗热点吗" class="headerlink" title="Memcached 一定能抗热点吗"></a>Memcached 一定能抗热点吗</h2><p>绝大部分场景下Memcached抗热点能力还是能达到预期效果的，但是如果你的Key比较大，那这个结论就可能不成立了，对于大Key 它的瓶颈可能不在CPU而是在网卡的带宽上了</p>
+<p>对于一些大Key的访问，可能几万QPS就能把网卡的带宽用满了，而且这个最坑的地方是，如果单个Memcached实例把网卡占满了，部署在这台机器上的其他实例也会受影响，所以我们尽量还是要避免一些大Key的情况，如果Key比较大那Memcached的抗热点能力也会显著下降</p>
+<h2 id="热点处理方案"><a href="#热点处理方案" class="headerlink" title="热点处理方案"></a>热点处理方案</h2><h3 id="本地缓存"><a href="#本地缓存" class="headerlink" title="本地缓存"></a>本地缓存</h3><p>通过 <code>LoadingCache</code> 将数据暂存到主调内存中，可以有效降低对缓存的压力</p>
+<p>本地缓存对于的get&#x2F;set的操作实现比较简单，但是对于zrange这些涉及多个参数命令会麻烦一些，除了Key还需要传入一些其他的参数，比如from,limit等，如果将这些参数作为本地缓存的key，那可能出现参数变化本地缓存key失效的情况，比如有个zset使用时间作为score，我们需要按照时间倒序取前100个元素，如果from用Double.MAX_VALUE没什么问题，但是如果from使用的是System.currentTimeMillis，那每次请求参数都会变化，本地缓存就失效了</p>
 
                 
               </div>
@@ -310,7 +298,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%AD%98/" class="print-no-link">#本地缓存</a>
+        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
       
     </div>
   
@@ -322,8 +310,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Caffeine 淘汰策略</div>
-      <div>http://showyoubug.cn/2024/09/30/Caffeine 淘汰策略/</div>
+      <div>Memcached为什么比Redis更能抗热点</div>
+      <div>http://showyoubug.cn/2024/10/17/Memcached为什么比Redis更能抗热点/</div>
     </div>
     <div class="license-meta">
       
@@ -335,7 +323,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年9月30日</div>
+          <div>2024年10月17日</div>
         </div>
       
       
@@ -367,18 +355,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/10/17/Memcached%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%94Redis%E6%9B%B4%E8%83%BD%E6%8A%97%E7%83%AD%E7%82%B9/" title="Memcached为什么比Redis更能抗热点">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Memcached为什么比Redis更能抗热点</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/09/20/Memcached%20%E5%92%8C%20Redis%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="Memcached 和 Redis 内存管理">
-                        <span class="hidden-mobile">Memcached 和 Redis 内存管理</span>
+                      <a href="/2024/09/30/Caffeine%20%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/" title="Caffeine 淘汰策略">
+                        <span class="hidden-mobile">Caffeine 淘汰策略</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
