@@ -17,24 +17,24 @@
   <meta name="author" content="Dong Su">
   <meta name="keywords" content="">
   
-    <meta name="description" content="Memcached 和 Redis 内存管理传统的 C 语言的 malloc&#x2F;free 函数是最常用的分配和释放内存的方法，但是这种方法存在着很大的缺陷  不匹配的malloc和free容易造成内存泄露 频繁调用会造成大量内存碎片无法回收重新利用，降低内存利用率 作为系统调用，其系统开销远远大于一般函数调用  MemcachedMemcached默认使用Slab Allocation机制">
+    <meta name="description" content="Caffeine 淘汰策略使用了 W-TinyLFU 算法，该算法主要有两部分  采用 Count-Min Sketch 算法降低频率信息带来的内存消耗 通过维护一个 PK 机制保障新上的热点数据能够被缓存  Count-Min Sketch 算法该算法首先认为：对于频率统计，我们其实不需要一个精确值。在存储数据时，它首先对 key 进行多种 hash 函数运算，然后在各个 hash 函数对应的二">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Memcached 和 Redis 内存管理">
-<meta property="og:url" content="http://showyoubug.cn/2024/09/20/Memcached%20%E5%92%8C%20Redis%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/index.html">
+<meta property="og:title" content="Caffeine 淘汰策略">
+<meta property="og:url" content="http://showyoubug.cn/2024/09/30/Caffeine%20%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/index.html">
 <meta property="og:site_name" content="辰光恰恰好">
-<meta property="og:description" content="Memcached 和 Redis 内存管理传统的 C 语言的 malloc&#x2F;free 函数是最常用的分配和释放内存的方法，但是这种方法存在着很大的缺陷  不匹配的malloc和free容易造成内存泄露 频繁调用会造成大量内存碎片无法回收重新利用，降低内存利用率 作为系统调用，其系统开销远远大于一般函数调用  MemcachedMemcached默认使用Slab Allocation机制">
+<meta property="og:description" content="Caffeine 淘汰策略使用了 W-TinyLFU 算法，该算法主要有两部分  采用 Count-Min Sketch 算法降低频率信息带来的内存消耗 通过维护一个 PK 机制保障新上的热点数据能够被缓存  Count-Min Sketch 算法该算法首先认为：对于频率统计，我们其实不需要一个精确值。在存储数据时，它首先对 key 进行多种 hash 函数运算，然后在各个 hash 函数对应的二">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241202224158.png">
-<meta property="article:published_time" content="2024-09-20T12:13:45.000Z">
-<meta property="article:modified_time" content="2024-12-02T14:51:02.424Z">
+<meta property="og:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20250109213928.png">
+<meta property="article:published_time" content="2024-09-30T12:13:45.000Z">
+<meta property="article:modified_time" content="2025-01-09T13:40:50.950Z">
 <meta property="article:author" content="Dong Su">
-<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="本地缓存">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20241202224158.png">
+<meta name="twitter:image" content="https://gitee.com/AWallFlower/picture/raw/master/img/20250109213928.png">
   
   
   
-  <title>Memcached 和 Redis 内存管理 - 辰光恰恰好</title>
+  <title>Caffeine 淘汰策略 - 辰光恰恰好</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -200,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Memcached 和 Redis 内存管理"></span>
+            <span id="subtitle" data-typed-text="Caffeine 淘汰策略"></span>
           
         </div>
 
@@ -211,8 +211,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-09-20 20:13" pubdate>
-          2024年9月20日 晚上
+        <time datetime="2024-09-30 20:13" pubdate>
+          2024年9月30日 晚上
         </time>
       </span>
     
@@ -223,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          769 字
+          963 字
         
       </span>
     
@@ -234,7 +234,7 @@
         
         
         
-          7 分钟
+          9 分钟
         
       </span>
     
@@ -271,19 +271,33 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">Memcached 和 Redis 内存管理</h1>
+            <h1 id="seo-header">Caffeine 淘汰策略</h1>
             
             
               <div class="markdown-body">
                 
-                <h1 id="Memcached-和-Redis-内存管理"><a href="#Memcached-和-Redis-内存管理" class="headerlink" title="Memcached 和 Redis 内存管理"></a>Memcached 和 Redis 内存管理</h1><p>传统的 C 语言的 malloc&#x2F;free 函数是最常用的分配和释放内存的方法，但是这种方法存在着很大的缺陷</p>
+                <h1 id="Caffeine-淘汰策略"><a href="#Caffeine-淘汰策略" class="headerlink" title="Caffeine 淘汰策略"></a>Caffeine 淘汰策略</h1><p>使用了 W-TinyLFU 算法，该算法主要有两部分</p>
 <ol>
-<li>不匹配的malloc和free容易造成内存泄露</li>
-<li>频繁调用会造成大量内存碎片无法回收重新利用，降低内存利用率</li>
-<li>作为系统调用，其系统开销远远大于一般函数调用</li>
+<li>采用 Count-Min Sketch 算法降低频率信息带来的内存消耗</li>
+<li>通过维护一个 PK 机制保障新上的热点数据能够被缓存</li>
 </ol>
-<h2 id="Memcached"><a href="#Memcached" class="headerlink" title="Memcached"></a>Memcached</h2><p>Memcached默认使用Slab Allocation机制管理内存，其主要思想是按照预先规定的大小，将分配的内存分割成特定长度的块以存储相应长度的key-value数据记录，以完全解决内存碎片问题<br><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20241202224158.png" srcset="/img/loading.gif" lazyload><br>首先从操作系统申请一大块内存，并将其分割成各种尺寸的块Chunk，并把尺寸相同的块分成组Slab Class<br>当Memcached接收到客户端发送过来的数据时首先会根据收到数据的大小选择一个最合适的Slab Class，然后通过查询Memcached保存着的该Slab Class内空闲Chunk的列表就可以找到一个可用于存储数据的Chunk。当一条数据库过期或者丢弃时，该记录所占用的Chunk就可以回收，重新添加到空闲列表中<br>Memcached的内存管理制效率高，而且不会造成内存碎片，但是它最大的缺点就是会导致空间浪费。比如将100个字节的数据缓存到128个字节的Chunk中，剩余的28个字节就浪费掉了</p>
-<h2 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h2><p>Redis为了方便内存的管理，在分配一块内存之后，会将这块内存的大小存入内存块的头部<br>在Redis中，并不是所有的数据都一直存储在内存中的。这是和Memcached相比一个最大的区别<br>当物理内存用完时，Redis可以将一些很久没用到的value交换到磁盘，Redis 只会缓存所有 key 的信息<br>如果 Redis 发现内存的使用量超过了某一个阈值，将会触发 swap 操作，将某些 key 对应的 value 持久化到磁盘中，同时在内存中清除。</p>
+<h2 id="Count-Min-Sketch-算法"><a href="#Count-Min-Sketch-算法" class="headerlink" title="Count-Min Sketch 算法"></a>Count-Min Sketch 算法</h2><p>该算法首先认为：对于频率统计，我们其实不需要一个精确值。在存储数据时，它首先对 key 进行多种 hash 函数运算，然后在各个 hash 函数对应的二维数组索引位置的记录值 +1</p>
+<p>多个 hash 算法是为了避免 hash 冲突</p>
+<p><img src="https://gitee.com/AWallFlower/picture/raw/master/img/20250109213928.png" srcset="/img/loading.gif" lazyload></p>
+<p>为了解决这个问题，采用多个 hash 算法，假设使用四种 hash 算法从该 key 在所有 hash 算法下映射的位置取数值最低的一个数作为访问频率（上图访问频率为 1）</p>
+<p>Caffeine 也利用了 Count-Min Sketch 的思想，但是它有稍微的变化</p>
+<p>Caffeine 使用一维 long 数组用来记录数据的访问频率，数组的大小为2的 N 次方，由缓存大小决定。假设缓存大小是 100，数组的大小需要满足：</p>
+<p>简单来说就是，数组的大小就是第一个大于等于缓存大小的 2 的 N 次方。如果缓存大小为 100，那么用于记录数据访问频率的数组大小就是128</p>
+<h2 id="PK-机制"><a href="#PK-机制" class="headerlink" title="PK 机制"></a>PK 机制</h2><p>Caffeine 所有的数据都存储在 ConcurrentHashMap 中。在 Caffeine 中有三个用于存储引用的 LRU 队列，分别是</p>
+<ul>
+<li>Window Cache</li>
+<li>Probation Cache</li>
+<li>Protected Cache</li>
+</ul>
+<p>其中Probation Cache 和 Protected Cache 组成了 Main Cache。正常情况下，Window Cache 占比大小为 1%，Probation Cache 大小为剩下的 99% 的 20%，Protected Cache 大小为剩下的 99% 的 80%</p>
+<p>新数据直接进入 Window 区，当 Window 区满了，就会根据 LRU 算法把 Candidate（即淘汰出来的元素）放到 Probation 区</p>
+<p>如果在 Probation 区的数据被访问到，会直接进入到Protected区。如果Protected区满了，该区淘汰出的数据将降级到Probation区</p>
+<p>如果 Probation 区满了，就把 Candidate 和 Probation 区的 Victim（将要淘汰的元素），两个进行 “PK”（比较两者频率大小），胜者将留在 Probation，输者就要被淘汰了。也就是说，实际上的数据淘汰，只在 Probation 区发生</p>
 
                 
               </div>
@@ -296,7 +310,7 @@
     <div class="post-meta">
       <i class="iconfont icon-tags"></i>
       
-        <a href="/tags/Redis/" class="print-no-link">#Redis</a>
+        <a href="/tags/%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%AD%98/" class="print-no-link">#本地缓存</a>
       
     </div>
   
@@ -308,8 +322,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Memcached 和 Redis 内存管理</div>
-      <div>http://showyoubug.cn/2024/09/20/Memcached 和 Redis 内存管理/</div>
+      <div>Caffeine 淘汰策略</div>
+      <div>http://showyoubug.cn/2024/09/30/Caffeine 淘汰策略/</div>
     </div>
     <div class="license-meta">
       
@@ -321,7 +335,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年9月20日</div>
+          <div>2024年9月30日</div>
         </div>
       
       
@@ -353,18 +367,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/09/30/Caffeine%20%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/" title="Caffeine 淘汰策略">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Caffeine 淘汰策略</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/09/07/Redis%20%E8%83%BD%E5%AD%98%E5%A4%9A%E5%B0%91%E4%B8%AA%20Key/" title="Redis 能存多少个 Key">
-                        <span class="hidden-mobile">Redis 能存多少个 Key</span>
+                      <a href="/2024/09/20/Memcached%20%E5%92%8C%20Redis%20%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="Memcached 和 Redis 内存管理">
+                        <span class="hidden-mobile">Memcached 和 Redis 内存管理</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
