@@ -225,6 +225,46 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
+        <a href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+          Redisson 延迟队列
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+        <div>
+          Redisson 延迟队列底层实现底层用 3 个队列实现  消息延迟队列，Zset 类型，按照过期时间顺序存放消息列表 消息顺序队列，List 类型，按照添加顺序存放消息列表 消息目标队列，List 类型，存放到期的消息，供消费者获取  消息来的时候先插入【消息延迟队列】和【消息顺序队列】 最后消费者在【消息目标队列】进行消费的，消费者只需要阻塞等待【消息目标队列】即可 消息移动在初始化延迟队列的
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-07-30 18:13" pubdate>
+              2024-07-30
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Redis/">#Redis</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
         <a href="/2024/07/23/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E7%9A%84%E9%95%BF%E8%BD%AE%E8%AF%A2/" target="_self">
           配置中心的长轮询
         </a>
@@ -563,46 +603,6 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2024-06-26 21:13" pubdate>
               2024-06-26
-            </time>
-          </div>
-        
-        
-        
-          <div class="post-meta">
-            <i class="iconfont icon-tags"></i>
-            
-              <a href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">#设计模式</a>
-            
-          </div>
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
-        <a href="/2024/06/25/%E6%A8%A1%E7%89%88%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F/" target="_self">
-          模版方法模式
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/06/25/%E6%A8%A1%E7%89%88%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F/" target="_self">
-        <div>
-          定义操作中的骨架流程，将一些步骤延迟加载到子类中，使子类可以不改变结构即可重新定义该流程的特定步骤  一个抽象类，定义骨架流程  例如一个请求经过流程分为如下步骤  解析请求头 封装数据 返回请求体  1234567891011121314public abstract class AbstractRequestService &#123;    abstract void resolveHead
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2024-06-25 21:13" pubdate>
-              2024-06-25
             </time>
           </div>
         
