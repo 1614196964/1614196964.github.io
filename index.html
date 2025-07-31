@@ -225,39 +225,6 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2025/07/31/index/" target="_self">
-          
-        </a>
-      </h2>
-
-      
-      <a class="index-excerpt index-excerpt__noimg" href="/2025/07/31/index/" target="_self">
-        <div>
-          Java代码格式化工具              * {             margin: 0;             padding: 0;             box-sizing: border-box;         }          body {             font-family: 'Courier New', monos
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2025-07-31 23:12" pubdate>
-              2025-07-31
-            </time>
-          </div>
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h2 class="index-header">
-        
         <a href="/2024/10/17/Memcached%E4%B8%BA%E4%BB%80%E4%B9%88%E6%AF%94Redis%E6%9B%B4%E8%83%BD%E6%8A%97%E7%83%AD%E7%82%B9/" target="_self">
           Memcached为什么比Redis更能抗热点
         </a>
@@ -605,6 +572,46 @@
             <i class="iconfont icon-tags"></i>
             
               <a href="/tags/JUC/">#JUC</a>
+            
+          </div>
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h2 class="index-header">
+        
+        <a href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+          Redisson 延迟队列
+        </a>
+      </h2>
+
+      
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/07/30/Redisson%20%E5%BB%B6%E8%BF%9F%E9%98%9F%E5%88%97/" target="_self">
+        <div>
+          Redisson 延迟队列底层实现底层用 3 个队列实现  消息延迟队列，Zset 类型，按照过期时间顺序存放消息列表 消息顺序队列，List 类型，按照添加顺序存放消息列表 消息目标队列，List 类型，存放到期的消息，供消费者获取  消息来的时候先插入【消息延迟队列】和【消息顺序队列】 最后消费者在【消息目标队列】进行消费的，消费者只需要阻塞等待【消息目标队列】即可 消息移动在初始化延迟队列的
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2024-07-30 18:13" pubdate>
+              2024-07-30
+            </time>
+          </div>
+        
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Redis/">#Redis</a>
             
           </div>
         
